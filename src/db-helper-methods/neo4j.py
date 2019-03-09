@@ -16,82 +16,86 @@ interest = ("Interest", "interest_name")
 
 # Getter methods for nodes
 
-def find_user(user_name): 
-    query = "MATCH (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(user[0], user[1], user_name );
-    return query;
-
-def find_skill(skill_name): 
-    query = "MATCH (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(skill[0], skill[1], skill_name );
-    return query;
-
-def find_interest(interest_name): 
-    query = "MATCH (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(interest[0], interest[1], interest_name );
-    return query;
-
-def find_project(project_name): 
-    query = "MATCH (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(project[0], project[1], project_name );
-    return query;
-
-def find_organization(organization_name): 
-    query = "MATCH (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(organization[0], organization[1], organization_name );
+def find_node(label, node_name):
+    node_type = None
+    if label is user[0]:
+        node_type = user
+    elif label is skill[0]:
+        node_type = skill
+    elif label is interest[0]:
+        node_type = interest
+    elif label is organization[0]:
+        node_type = organization
+    elif label is project[0]:
+        node_type = project
+    else:
+        errorMessage = "Incorrect label used when trying to find node type: {0} with name: {1}".format(label, node_name)
+        raise ValueError(errorMessage)
+    query = "MATCH (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(node_type[0], node_type[1], node_name )
     return query;
 
 # Create methods for nodes
 
-def create_user(user_name):
-    query = "MERGE (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(user[0], user[1], user_name );
-    return query
-
-def create_skill(skill_name):        
-    query = "MERGE (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(skill[0], skill[1], skill_name );
-    return query
-
-def create_interest(interest_name): 
-    query = "MERGE (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(interest[0], interest[1], interest_name );
-    return query
-
-def create_project(project_name): 
-    query = "MERGE (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(project[0], project[1], project_name );
-    return query
-
-def create_organization(organization_name):    
-    query = "MERGE (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(organization[0], organization[1], organization_name );
+def create_node(label, node_name):
+    node_type = None
+    if label is user[0]:
+        node_type = user
+    elif label is skill[0]:
+        node_type = skill
+    elif label is interest[0]:
+        node_type = interest
+    elif label is organization[0]:
+        node_type = organization
+    elif label is project[0]:
+        node_type = project
+    else:
+        errorMessage = "Incorrect label used when trying to create node: {0} with name: {1}".format(label, node_name)
+        raise ValueError(errorMessage)
+    query = "MERGE (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(node_type[0], node_type[1], node_name )
     return query
 
 # Delete methods for nodes
-def delete_user(user_name):
-    query = "MATCH (u: {0}) WHERE  u.{1} = '{2}' DELETE u".format(user[0], user[1], user_name );
-    return query
 
-def delete_skill(skill_name):        
-    query = "MATCH (u: {0}) WHERE  u.{1} = '{2}' DELETE u".format(skill[0], skill[1], skill_name );
-    return query
 
-def delete_interest(interest_name): 
-    query = "MATCH (u: {0}) WHERE  u.{1} = '{2}' DELETE u".format(interest[0], interest[1], interest_name );
-    return query
-
-def delete_project(project_name): 
-    query = "MATCH (u: {0}) WHERE  u.{1} = '{2}' DELETE u".format(project[0], project[1], project_name );
-    return query
-
-def delete_organization(organization_name):    
-    query =  "MATCH (u: {0}) WHERE  u.{1} = '{2}' DELETE u".format(organization[0], organization[1], organization_name );
+def delete_node(label, node_name):
+    node_type = None
+    if label is user[0]:
+        node_type = user
+    elif label is skill[0]:
+        node_type = skill
+    elif label is interest[0]:
+        node_type = interest
+    elif label is organization[0]:
+        node_type = organization
+    elif label is project[0]:
+        node_type = project
+    else:
+        errorMessage = "Incorrect label used when trying to delete node: {0} with name: {1}".format(label, node_name)
+        raise ValueError(errorMessage)
+    query = "MATCH (u: {0}) WHERE  u.{1} = '{2}' DELETE u".format(node_type[0], node_type[1], node_name );
     return query
 
 if __name__ == '__main__':
-    print(create_user("Shane"))
-    print(create_skill("Cloud Computing"))
-    print(create_interest("Bird Watching"))
-    print(create_project("Expansion_DB"))
-    print(create_organization("Bloomberg")) 
-    print(find_user("Shane"))
-    print(find_skill("Cloud Computing"))
-    print(find_interest("Bird Watching"))
-    print(find_project("Expansion_DB"))
-    print(find_organization("Bloomberg"))
-    print(delete_user("Shane")) 
+    #print(create_user("Shane"))
+    #print(create_skill("Cloud Computing"))
+   # print(create_interest("Bird Watching"))
+   # print(create_project("Expansion_DB"))
+   # print(create_organization("Bloomberg")) 
+    #print(find_user("Shane"))
+    print("New method")
+    print(delete_node("User", "Shane"))
+    print(delete_node("Skill", "Cloud Computing"))
+    print(delete_node("Interest", "Bird Watching"))
+    print(delete_node("Project", "Expansion_DB"))
+    print(delete_node("Organization", "Bloomberg"))
+    print("Old method")
+    print(delete_user("Shane"))
     print(delete_skill("Cloud Computing"))
     print(delete_interest("Bird Watching"))
     print(delete_project("Expansion_DB"))
     print(delete_organization("Bloomberg"))
+   # print(delete_user("Shane")) 
+   # print(delete_skill("Cloud Computing"))
+   # print(delete_interest("Bird Watching"))
+   # print(delete_project("Expansion_DB"))
+   # print(delete_organization("Bloomberg"))

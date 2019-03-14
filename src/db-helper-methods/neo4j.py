@@ -12,6 +12,7 @@ from datetime import datetime
 
 # constants for entity types
 user = ("User", "user_name")
+# TODO: VERY IMPORTANT: need to only allow three organizations (G, C, U)
 organization = ("Organization", "organization_name")
 project = ("Project", "project_name")
 skill = ("Skill", "skill_name")

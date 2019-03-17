@@ -3,24 +3,35 @@ from datetime import datetime
 from collections import OrderedDict
 import pandas as pd
 import yaml
-
+from db_service import DbService
 
 class CollaboratorDotNet(cli.Application):
     # Types of acceptable files at command line
-    _valid_file_types = ('skill', 'project', 'organization', 'interest', 'distance', 'user')
-    # Structure of csv columns
+    _valid_file_types = ('skill', 'project', 'organization', 'interest', 'distance', 'user', 'friend')
+    # Structure of csv columns 
     _valid_file_structures = {
-            _valid_file_types[0] : OrderedDict({'User_Id': int, 'Skill ': str, 'Skill level': int}),
-            _valid_file_types[1] : OrderedDict({'User_id': int, 'Project': str}),
-            _valid_file_types[2] : OrderedDict({'User_id': int, 'organization': str, 'organization type': str}),
-            _valid_file_types[3] : OrderedDict({'User_id': int, 'Interest': str, 'Interest level': int}),
-            _valid_file_types[4] : OrderedDict({"Organization 1": str, "Organization 2": str, "Distance": int}),
-            _valid_file_types[5] : OrderedDict({'User_id': int, 'First name': str, 'Last name': str})
-    }
+            _valid_file_types[0] : OrderedDict({'userid': int, 'skill': str, 'skilllevel': int, 'description': str}),
+            _valid_file_types[1] : OrderedDict({'userid': int, 'project': str, 'description': str}),
+            _valid_file_types[2] : OrderedDict({'userid': int, 'organization': str, 'organizationtype': str, 'description': str}),
+            _valid_file_types[3] : OrderedDict({'userid': int, 'interest': str, 'interestlevel': int, 'description':str}),
+            _valid_file_types[4] : OrderedDict({"organization1": str, "organization2": str, "distance": int}),
+            _valid_file_types[5] : OrderedDict({'userid': int, 'firstname': str, 'lastname': str, 'description': str}),
+            _valid_file_types[6] : OrderedDict({'userid1': int, 'userid2':int})
+    } 
+    
 
+    _db_service = None
+
+    def connect_to_db(self):
+        if not self._db_service:
+            print('Connecting to databases at ... {0}'.format(datetime.now()))
+            self._db_service = DbService()
+
+    
     @cli.switch(['-m', '--input-many'], str)
-    def input_many_data(self, file_path_to_yaml):
-        """ Input a list of csv files to input input_data """
+    def input_lots_of_data(self, file_path_to_yaml):
+        """ Input a list of csv files to input into input_data """
+        self.connect_to_db()
         yaml_file = None
         with open(file_path_to_yaml) as raw_config_file:
             try:
@@ -32,10 +43,13 @@ class CollaboratorDotNet(cli.Application):
         
 
     # will input a file named file_name that is input data of file_type
+   
     @cli.switch(['-i', '--input'], str)
     def input_data(self, file_path_and_type):
         """ Input data, enter a string of form file_type,file_path  """
+        self.connect_to_db()
         file_path, file_type = file_path_and_type.split(',')
+        print('Reading file of type {0} from {1} at ... {2}'.format(file_type, file_path, datetime.now())) 
         print('Check if input is valid at ... {0}'.format(datetime.now()))
         # Error validation
         self.is_file(file_path)
@@ -44,16 +58,29 @@ class CollaboratorDotNet(cli.Application):
         print('Input validated at ... {0}\n'.format(datetime.now()))
         print('Attempting to read data from {0} at ... {1}'.format(file_path, datetime.now())) 
         input_data = self.read_data(file_path, file_type)
-        print('Data read and cleaned at ... {0}'.format(datetime.now()))
-        print(input_data)
-        print()
+        print('Data read and cleaned at ... {0}\n'.format(datetime.now()))
         # TODO: Load the data according to the appropriate file
+        if file_type == self._valid_file_types[0]:
+            print('{0} not yet implemented'.format(self._valid_file_types[0]))
+        elif file_type == self._valid_file_types[1]:
+            print('{0} not yet implemented'.format(self._valid_file_types[1]))
+        elif file_type == self._valid_file_types[2]:
+            print('{0} not yet implemented'.format(self._valid_file_types[2]))
+        elif file_type == self._valid_file_types[3]:
+            print('{0} not yet implemented'.format(self._valid_file_types[3]))
+        elif file_type == self._valid_file_types[4]:
+            print('{0} not yet implemented'.format(self._valid_file_types[4]))
+        elif file_type == self._valid_file_types[5]:
+            # This will be the user data insertion
+            print('{0} is currently being implemented'.format(self._valid_file_types[5]))
+            self._db_service.add_many_new_user_nodes(input_data)
+        elif file_type == self._valid_file_types[6]:
+            print('{0} not yet implemented'.format(self._valid_file_types[6]))
+     
+
     def read_data(self, file_path, file_type):
         data_to_load = pd.read_csv(file_path)
-        #print(data_to_load, data_to_load.dtypes)
-        #print()
-        #for (key, value) in self._valid_file_structures[file_type].items():
-        #    print(data_to_load[key].astype(value))
+        data_to_load = self.normalize_headers(data_to_load) 
         types_to_convert = []
         for (key, value) in self._valid_file_structures[file_type].items():
             if value ==  int:
@@ -62,11 +89,11 @@ class CollaboratorDotNet(cli.Application):
             data_to_load[data_type] = pd.to_numeric(data_to_load[data_type], errors='coerce')
             data_to_load = data_to_load.dropna()
             data_to_load[data_type] = data_to_load[data_type].astype(int)
-        return data_to_load
+        return data_to_load 
 
-    def main(self):
-        #print('Command line application starting...')
-        pass
+    def normalize_headers(self, data_frame): 
+        data_frame.columns = list(map(lambda x : x.replace('_','').replace(' ','').lower(), list(data_frame.columns.values)))
+        return data_frame
 
     def is_file(self, file_path):
         if local.path(file_path).is_file():
@@ -87,11 +114,15 @@ class CollaboratorDotNet(cli.Application):
             print("Failed to match valid data input types at ... {0}".format(datetime.now()))
             err_message = 'Invalid file input type "{0}", exiting'.format(file_type)
             raise TypeError(err_message)
-        headers = list(pd.read_csv(file_path).columns)
+        data_to_load = self.normalize_headers(pd.read_csv(file_path))
+        headers = list(data_to_load.columns)
+       # headers = list(pd.read_csv(file_path).columns)
         if list(file_structure[file_type].keys()) != headers:
             print("Failed to match valid proper csv data structure  at ... {0}".format(datetime.now()))
             err_message = 'Invalid file structure at "{0}", exiting'.format(file_path)
             raise TypeError(err_message)
+    def main(self):
+        pass
 
 if __name__=='__main__':
     CollaboratorDotNet.run()

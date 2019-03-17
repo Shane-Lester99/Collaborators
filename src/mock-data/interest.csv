@@ -1,8 +1,8 @@
-User_id,Interest,Interest level
-1,I1,10
-2,I2,10
-2,I3,5
-3,I3,10
-3,I4,9
-4,I4,7
-1,I3,8
+User_id,Interest,Interest level, description
+1,I1,10,d
+2,I2,10,d
+2,I3,5,d
+3,I3,10,d
+3,I4,9,d
+4,I4,7,d
+1,I3,8,d

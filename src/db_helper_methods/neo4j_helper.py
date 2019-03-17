@@ -3,6 +3,12 @@
 # can not be corrupted with strange data
 
 from datetime import datetime
+import sys 
+import os
+from plumbum import local
+#sys.path.append('./..')
+#from db_service import DbService
+
 
 # TODO: Connect to neo4j
 # TODO: Add some sort of statuses and return values for each query to give feedback of how the query went
@@ -11,7 +17,7 @@ from datetime import datetime
 #from py2neo import Graph
 
 # constants for entity types
-user = ("User", "user_name")
+user = ("user", "firstname", "lastname", "userid")
 # TODO: VERY IMPORTANT: need to only allow three organizations (G, C, U)
 organization = ("Organization", "organization_name")
 project = ("Project", "project_name")
@@ -26,9 +32,10 @@ project_rel = ("works_on", "role")
 organization_rel = ("works_for", "address", "location")
 organization_to_project_rel = ("owns","priority")
 
+
+
+
 # Getter methods for nodes
-
-
 def find_node(label, node_name):
     # TODO: Would like a reason for failure here
     node_type = None
@@ -51,10 +58,12 @@ def find_node(label, node_name):
 
 # Create methods for nodes
 
-def create_node(label, node_name):
+def create_node(label, node_data):
     # TODO: Would like a boolean here indicating whether it was successful or not
-    node_type = None 
-    node_name = ' '.join(node_name.lower().split())
+    node_type = None
+    for i in range(0,len(node_data),1):
+        if type(node_data[i]) == str:
+            node_data[i] = ' '.join(node_data[i].lower().split())
     if label is user[0]:
         node_type = user
     elif label is skill[0]:
@@ -66,9 +75,17 @@ def create_node(label, node_name):
     elif label is project[0]:
         node_type = project
     else:
-        errorMessage = "Incorrect label used when trying to create node: {0} with name: {1}".format(label, node_name)
+        errorMessage = "Incorrect label used when trying to create node: {0} with data: {1}".format(label, node_data)
         raise ValueError(errorMessage)
-    query = "MERGE (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(node_type[0], node_type[1], node_name )
+    if node_type[0] == 'user':
+        print('we are here')
+        query = """MERGE (u: {0} {{ {1} : {4} }})
+            ON CREATE SET u.{1} = {4}
+            ON CREATE SET u.{2} ='{5}'
+            ON CREATE SET u.{3}  ='{6}'
+            RETURN u""".format(node_type[0], node_type[3], node_type[1], node_type[2], node_data[0], node_data[1], node_data[2] )
+    else: 
+        query = "MERGE (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(node_type[0], node_type[3], node_type[1], node_type[2], node_data[0],  )
     return query
 
 # Delete methods for nodes
@@ -199,21 +216,21 @@ if __name__ == '__main__':
 
    # print("New method")
     #print(delete_node("User", "Shane"))
-    print(create_node('User', 'Shane Lester'))
-    print(create_node('User', 'Jessica Ambers'))
-    print(create_node("Skill", "Cloud Computing"))
-    print(create_node('Skill', "Programming"))
-    print(create_node('Skill', 'programming'))
-    print(create_node('Interest', 'Ping   pong'))
-    print(create_node('Project', "Project Sunshine"))
-    print(create_node('Organization', 'Red Cross' ))
-    print(create_node('Organization', 'Bloomberg'))
-    print(create_node('Project', 'Stock Widget'))
-    print(remove_project_from_organization('Bloomberg', 'Stock Widget'))
-    print(create_node('Organization', 'Apache'))
-    print(add_project_to_organization('Apache', 'Stock Widget', 7))
-    print(add_project_to_organization('Red Cross', 'Project Sunshine', 6))
-    print(add_project_to_organization('Bloomberg', 'Stock Widget', 3))
+    print(create_node('user', [5,'Helena','Jacoba']))
+    #print(create_node('User', 'Jessica Ambers'))
+    #print(create_node("Skill", "Cloud Computing"))
+    #print(create_node('Skill', "Programming"))
+    #print(create_node('Skill', 'programming'))
+    #print(create_node('Interest', 'Ping   pong'))
+    #print(create_node('Project', "Project Sunshine"))
+    #print(create_node('Organization', 'Red Cross' ))
+    #print(create_node('Organization', 'Bloomberg'))
+    #print(create_node('Project', 'Stock Widget'))
+    #print(remove_project_from_organization('Bloomberg', 'Stock Widget'))
+    #print(create_node('Organization', 'Apache'))
+    #print(add_project_to_organization('Apache', 'Stock Widget', 7))
+    #print(add_project_to_organization('Red Cross', 'Project Sunshine', 6))
+    #print(add_project_to_organization('Bloomberg', 'Stock Widget', 3))
     #print(create_friendship('Jessica Ambers','shane lester  '))
     #print(delete_friendship('Jessica Ambers', 'Shane lester'))
    # print(add_associated_skill("Shane Lester", "programming ", 10))

@@ -7,5 +7,9 @@ neo4j:
     secure: False
 
 mongodb:
-    h
+    database_name: 'collaborator_entity_info'
+    host: localhost
+    port: 27017
+    username: NULL 
+    password: NULL
 

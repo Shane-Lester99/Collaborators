@@ -17,7 +17,7 @@ from plumbum import local
 #from py2neo import Graph
 
 # constants for entity types
-user = ("user", "firstname", "lastname", "userid")
+user = ("user", "userid", "firstname", "lastname")
 # TODO: VERY IMPORTANT: need to only allow three organizations (G, C, U)
 organization = ("Organization", "organization_name")
 project = ("Project", "project_name")
@@ -39,7 +39,8 @@ organization_to_project_rel = ("owns","priority")
 def find_node(label, node_name):
     # TODO: Would like a reason for failure here
     node_type = None
-    node_name = ' '.join(node_name.lower().split())
+    if isinstance(node_name, str):
+        node_name = ' '.join(node_name.lower().split())
     if label is user[0]:
         node_type = user
     elif label is skill[0]:
@@ -53,7 +54,10 @@ def find_node(label, node_name):
     else:
         errorMessage = "Incorrect label used when trying to find node type: {0} with name: {1}".format(label, node_name)
         raise ValueError(errorMessage)
-    query = "MATCH (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(node_type[0], node_type[1], node_name )
+    if node_type[0] == 'user':         
+        query = "MATCH (u: {0} {{ {1} : {2} }} ) RETURN u".format(node_type[0], node_type[1], node_name )
+    else:
+        query = "MATCH (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(node_type[0], node_type[1], node_name )
     return query;
 
 # Create methods for nodes
@@ -77,13 +81,12 @@ def create_node(label, node_data):
     else:
         errorMessage = "Incorrect label used when trying to create node: {0} with data: {1}".format(label, node_data)
         raise ValueError(errorMessage)
-    if node_type[0] == 'user':
-        print('we are here')
+    if node_type[0] == 'user': 
         query = """MERGE (u: {0} {{ {1} : {4} }})
             ON CREATE SET u.{1} = {4}
             ON CREATE SET u.{2} ='{5}'
             ON CREATE SET u.{3}  ='{6}'
-            RETURN u""".format(node_type[0], node_type[3], node_type[1], node_type[2], node_data[0], node_data[1], node_data[2] )
+            RETURN u""".format(node_type[0], node_type[1], node_type[2], node_type[3], node_data[0], node_data[1], node_data[2] )
     else: 
         query = "MERGE (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(node_type[0], node_type[3], node_type[1], node_type[2], node_data[0],  )
     return query

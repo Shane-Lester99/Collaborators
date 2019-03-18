@@ -89,6 +89,33 @@ class DbService:
                 ) 
         self._mongo_client = MongoClient(uri)
 
+
+    def add_many_new_interest_nodes(self, dataframe):
+        for row in dataframe.iterrows():
+            index, data = row
+            row_items = data.tolist()
+            self._add_new_interest_node('interest', row_items[0], row_items[1], row_items[2], row_items[3])
+
+    def _add_new_interest_node(self, label, user_id, interest_name, interest_level, description):
+        query = n_h.find_node('user', user_id)
+        exist_nodes_with_id = self._neo4j_graph.run(query)
+        if exist_nodes_with_id.data():
+            query = n_h.create_node(label, [interest_name])
+            self._neo4j_graph.run(query)
+            query = n_h.match_associated_interest(user_id, interest_name) 
+            exist_interest_with_name = self._neo4j_graph.run(query).data()
+            if len(exist_interest_with_name) == 0:
+                query = n_h.add_associated_interest(user_id, interest_name, interest_level)
+                self._neo4j_graph.run(query)
+                mongo_interest = m_h.MongoDbSchema.Interest(interest_name, description)
+                new_interest_doc = mongo_interest.create_new_interest_doc()
+                self._mongo_db[mongo_interest.table_name].insert(new_interest_doc) 
+                print('\tData saved for interest {0} at ... {1}\n'.format(interest_name, datetime.now()))
+            else:
+                print('\tData associated with interest {0} already present.\n\tInterest data rejected at ... {1}\n'.format(interest_name, datetime.now()))
+        else:
+            print('\tUser associated with id: {0} does not exist.\n\tInterest data rejected at ... {1}\n'.format(user_id, datetime.now()))
+
     def add_many_new_skill_nodes(self, dataframe):
         for row in dataframe.iterrows():
             index, data = row
@@ -109,7 +136,7 @@ class DbService:
                 mongo_skill = m_h.MongoDbSchema.Skill(skill_name, description)
                 new_skill_doc = mongo_skill.create_new_skill_doc()
                 self._mongo_db[mongo_skill.table_name].insert(new_skill_doc) 
-                print('\tData saved for skill {0} at ... {1}'.format(skill_name, datetime.now()))
+                print('\tData saved for skill {0} at ... {1}\n'.format(skill_name, datetime.now()))
             else:
                 print('\tData associated with skill {0} already present.\n\tSkill data rejected at ... {1}\n'.format(skill_name, datetime.now()))
         else:
@@ -132,7 +159,7 @@ class DbService:
             #self._mongo_db[mongo_user.table_name].            
             new_user_doc = mongo_user.create_new_user_doc()
             self._mongo_db[mongo_user.table_name].insert(new_user_doc)
-            print('\tData saved for user with id {0} at ... {1}'.format(user_id, datetime.now()))
+            print('\tData saved for user with id {0} at ... {1}\n'.format(user_id, datetime.now()))
         else:
             print('\tData already downloaded for user with id: {0}\n\tNew user rejected at ... {1}\n'.format(user_id, datetime.now()))
 

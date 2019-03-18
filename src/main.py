@@ -62,19 +62,20 @@ class CollaboratorDotNet(cli.Application):
         print('Data read and cleaned at ... {0}\n'.format(datetime.now()))
         if file_type == self._valid_file_types[0]:
             # User skill switch
-            print("Loading {0} data at ... {1}".format(self._valid_file_types[0].upper(), datetime.now()))
+            print("Loading {0} data at ... {1}\n\n".format(self._valid_file_types[0].upper(), datetime.now()))
             self._db_service.add_many_new_skill_nodes(input_data)
         elif file_type == self._valid_file_types[1]:
             print('{0} not yet implemented'.format(self._valid_file_types[1]))
         elif file_type == self._valid_file_types[2]:
             print('{0} not yet implemented'.format(self._valid_file_types[2]))
-        elif file_type == self._valid_file_types[3]:
-            print('{0} not yet implemented'.format(self._valid_file_types[3]))
+        elif file_type == self._valid_file_types[3]: 
+            print("Loading {0} data at ... {1}\n\n".format(self._valid_file_types[3].upper(), datetime.now()))
+            self._db_service.add_many_new_interest_nodes(input_data)
         elif file_type == self._valid_file_types[4]:
             print('{0} not yet implemented'.format(self._valid_file_types[4]))
         elif file_type == self._valid_file_types[5]:
             # Skill associated with user switch
-            print('Loading {0} data at  ... {1}'.format(self._valid_file_types[5].upper(), datetime.now()))
+            print('Loading {0} data at  ... {1}\n\n'.format(self._valid_file_types[5].upper(), datetime.now()))
             self._db_service.add_many_new_user_nodes(input_data)
      
 

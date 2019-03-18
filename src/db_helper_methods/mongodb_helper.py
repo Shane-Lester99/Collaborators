@@ -25,7 +25,7 @@ class MongoDbSchema(object):
                     'description' : self._description 
                 }
                 return user_doc
-            print('User document not usable. Error in code. Exiting')
+            print('User document not usable. Mongo schema error. Exiting')
             sys.exit(1)
     class Skill(object):
         _skill_name = None
@@ -46,6 +46,26 @@ class MongoDbSchema(object):
                     'description': self._description
                 }
                 return skill_doc
-            print('Skill document not usable. Error in code. Exiting.')
+            print('Skill document not usable. Mongo schema error. Exiting.')
             sys.exit(1)
-
+    class Interest(object):
+        _interest_name = None
+        _description = None
+        table_name = 'interest'
+        def __init__(self, name, description):
+            self._interest_name = name
+            self._description = description
+        def _make_usable(self):
+            if not self._interest_name:
+                return False
+            if not self._description:
+                self._description = 'Fill in information about this interest'
+        def create_new_interest_doc(self):
+            if self._make_usable:
+                interest_doc = {
+                    'interest': self._interest_name,
+                    'description': self._description
+                }
+                return interest_doc
+            print('Interest document not usable. Mongo schema error. Exiting.')
+            sys.exit(1)

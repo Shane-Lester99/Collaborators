@@ -22,7 +22,7 @@ user = ("user", "userid", "firstname", "lastname")
 organization = ("Organization", "organization_name")
 project = ("Project", "project_name")
 skill = ("skill", "skill")
-interest = ("Interest", "interest_name")
+interest = ("interest", "interest")
 
 # constants for labels:
 friendship_rel = ("is_friends_with", "added_on")
@@ -159,16 +159,24 @@ def delete_associated_skill(user_name, skill_name):
     return query
 
 
-def add_associated_interest(user_name, interest_name, interest_level): 
-    user_name = ' '.join(user_name.lower().split())
+def add_associated_interest(user_id, interest_name, interest_level):  
     interest_name = ' '.join(interest_name.lower().split()) 
     if not 1 <= interest_level <= 10:
         return
-    query = """MATCH (u1: {0} {{ {1} : '{4}' }}), (u2: {2}  {{ {3} : '{5}' }})
+    query = """MATCH (u1: {0} {{ {1} : {4} }}), (u2: {2}  {{ {3} : '{5}' }})
                 MERGE(u1) - [s : {6} {{ {7} : {8} }}] -> (u2)
-                RETURN u1, s,  u2""".format(user[0], user[1], interest[0], interest[1], user_name, interest_name, interest_rel[0], interest_rel[1], interest_level)
+                RETURN u1, s,  u2""".format(user[0], user[1], interest[0], interest[1], user_id, interest_name, interest_rel[0], interest_rel[1], interest_level)
 
     return query
+
+
+def match_associated_interest(user_id, interest_name): 
+    interest_name = ' '.join(interest_name.lower().split())
+    # TODO: Would like some indication of what happened to caller returned here
+    query = """MATCH (u1: {0} {{ {1}: {5} }}) -[v: {4}] - (u2: {2} {{ {3}: '{6}' }} )
+                RETURN v""".format(user[0], user[1], interest[0], interest[1], interest_rel[0], user_id, interest_name )
+    return query
+
 
 def delete_associated_interest(user_name, interest_name):
     user_name = ' '.join(user_name.lower().split())

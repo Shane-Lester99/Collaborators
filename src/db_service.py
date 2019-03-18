@@ -90,10 +90,22 @@ class DbService:
         self._mongo_client = MongoClient(uri)
 
 
+    def _make_list_correct_length(self, wanted_length, row_items):
+        if wanted_length < len(row_items):
+            print('Error in list resize. Critical error. Exiting.\n')
+            sys.exit(1)
+        for i in range(0, wanted_length - 1, 1):
+            try:
+                row_items[i]
+            except IndexError as err:
+                row_items.append(None)
+        return row_items
+
     def add_many_new_interest_nodes(self, dataframe):
         for row in dataframe.iterrows():
             index, data = row
             row_items = data.tolist()
+            row_items = self._make_list_correct_length(4, row_items)
             self._add_new_interest_node('interest', row_items[0], row_items[1], row_items[2], row_items[3])
 
     def _add_new_interest_node(self, label, user_id, interest_name, interest_level, description):
@@ -120,6 +132,7 @@ class DbService:
         for row in dataframe.iterrows():
             index, data = row
             row_items = data.tolist()
+            row_items = self._make_list_correct_length(4, row_items)
             self._add_new_skill_node('skill', row_items[0], row_items[1], row_items[2], row_items[3])
 
     def _add_new_skill_node(self, label, user_id, skill_name, skill_level, description):
@@ -141,6 +154,37 @@ class DbService:
                 print('\tData associated with skill {0} already present.\n\tSkill data rejected at ... {1}\n'.format(skill_name, datetime.now()))
         else:
             print('\tUser associated with id: {0} does not exist.\n\tSkill data rejected at ... {1}\n'.format(user_id, datetime.now()))
+
+
+    def add_many_new_project_nodes(self, dataframe):
+        for row in dataframe.iterrows():
+            index, data = row
+            row_items = data.tolist()
+            row_items = self._make_list_correct_length(4, row_items)
+            self._add_new_project_node('project', row_items[0], row_items[1], row_items[2], row_items[3])
+
+    def _add_new_project_node(self, label, user_id, project_name, role, description): 
+        if not role or not description:
+            role = 'unknown'
+            description = None
+        query = n_h.find_node('user', user_id)
+        exist_nodes_with_id = self._neo4j_graph.run(query)
+        if exist_nodes_with_id.data():
+            query = n_h.create_node(label, [project_name])
+            self._neo4j_graph.run(query)
+            query = n_h.match_project_association(user_id, project_name)  
+            exist_project_with_name = self._neo4j_graph.run(query).data()
+            if len(exist_project_with_name) == 0:
+                query = n_h.add_to_project(user_id, project_name, role)
+                self._neo4j_graph.run(query)
+                mongo_project = m_h.MongoDbSchema.Project(project_name, description)
+                new_project_doc = mongo_project.create_new_project_doc()
+                self._mongo_db[mongo_project.table_name].insert(new_project_doc) 
+                print('\tData saved for project {0} at ... {1}\n'.format(project_name, datetime.now()))
+            else:
+                print('\tData associated with project {0} already present.\n\tProject data rejected at ... {1}\n'.format(project_name, datetime.now()))
+        else:
+            print('\tUser associated with id: {0} does not exist.\n\tProject data rejected at ... {1}\n'.format(user_id, datetime.now()))
 
     def add_many_new_user_nodes(self, dataframe):
         # Take the dataframe and for each row add a new nor

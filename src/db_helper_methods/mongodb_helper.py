@@ -69,3 +69,24 @@ class MongoDbSchema(object):
                 return interest_doc
             print('Interest document not usable. Mongo schema error. Exiting.')
             sys.exit(1)
+    class Project(object):
+        _project_name = None
+        _description = None
+        table_name = 'project'
+        def __init__(self, name, description):
+            self._interest_project_name = name
+            self._description = description
+        def _make_usable(self):
+            if not self._interest_name:
+                return False
+            if not self._description:
+                self._description = 'Fill in information about this project'
+        def create_new_project_doc(self):
+            if self._make_usable:
+                project_doc = {
+                    'project': self._project_name,
+                    'description': self._description
+                }
+                return project_doc
+            print('Interest document not usable. Mongo schema error. Exiting.')
+            sys.exit(1)

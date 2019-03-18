@@ -11,7 +11,7 @@ class CollaboratorDotNet(cli.Application):
     # Structure of csv columns 
     _valid_file_structures = {
             _valid_file_types[0] : OrderedDict({'userid': int, 'skill': str, 'skilllevel': int, 'description': str}),
-            _valid_file_types[1] : OrderedDict({'userid': int, 'project': str, 'description': str}),
+            _valid_file_types[1] : OrderedDict({'userid': int, 'project': str, 'role' : str, 'description': str}),
             _valid_file_types[2] : OrderedDict({'userid': int, 'organization': str, 'organizationtype': str, 'description': str}),
             _valid_file_types[3] : OrderedDict({'userid': int, 'interest': str, 'interestlevel': int, 'description':str}),
             _valid_file_types[4] : OrderedDict({"organization1": str, "organization2": str, "distance": int}),
@@ -61,12 +61,15 @@ class CollaboratorDotNet(cli.Application):
         input_data = self.read_data(file_path, file_type)
         print('Data read and cleaned at ... {0}\n'.format(datetime.now()))
         if file_type == self._valid_file_types[0]:
-            # User skill switch
+            # Skill switch
             print("Loading {0} data at ... {1}\n\n".format(self._valid_file_types[0].upper(), datetime.now()))
             self._db_service.add_many_new_skill_nodes(input_data)
         elif file_type == self._valid_file_types[1]:
-            print('{0} not yet implemented'.format(self._valid_file_types[1]))
+            # Project switch
+            print("Loading {0} data at ... {1}\n\n".format(self._valid_file_types[1].upper(), datetime.now()))
+            self._db_service.add_many_new_project_nodes(input_data)
         elif file_type == self._valid_file_types[2]:
+
             print('{0} not yet implemented'.format(self._valid_file_types[2]))
         elif file_type == self._valid_file_types[3]: 
             print("Loading {0} data at ... {1}\n\n".format(self._valid_file_types[3].upper(), datetime.now()))

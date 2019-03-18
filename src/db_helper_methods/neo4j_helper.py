@@ -20,7 +20,7 @@ from plumbum import local
 user = ("user", "userid", "firstname", "lastname")
 # TODO: VERY IMPORTANT: need to only allow three organizations (G, C, U)
 organization = ("Organization", "organization_name")
-project = ("Project", "project_name")
+project = ("project", "projectname")
 skill = ("skill", "skill")
 interest = ("interest", "interest")
 
@@ -187,13 +187,20 @@ def delete_associated_interest(user_name, interest_name):
     return query
 
 
-def add_to_project(user_name, project_name, role): 
-    user_name = ' '.join(user_name.lower().split())
+def add_to_project(user_id, project_name, role):  
     project_name = ' '.join(project_name.lower().split()) 
     role = ' '.join(role.lower().split())    
-    query = """MATCH (u1: {0} {{ {1} : '{4}' }}), (u2: {2}  {{ {3} : '{5}' }})
+    query = """MATCH (u1: {0} {{ {1} : {4} }}), (u2: {2}  {{ {3} : '{5}' }})
                 MERGE(u1) - [s : {6} {{ {7} : '{8}' }}] -> (u2)
-                RETURN u1, s,  u2""".format(user[0], user[1], project[0], project[1], user_name, project_name, project_rel[0], project_rel[1], role)
+                RETURN u1, s,  u2""".format(user[0], user[1], project[0], project[1], user_id, project_name, project_rel[0], project_rel[1], role)
+    return query
+
+
+def match_project_association(user_id, project_name): 
+    project_name = ' '.join(project_name.lower().split())
+    # TODO: Would like some indication of what happened to caller returned here
+    query = """MATCH (u1: {0} {{ {1}: {5} }}) -[v: {4}] - (u2: {2} {{ {3}: '{6}' }} )
+                RETURN v""".format(user[0], user[1], project[0], project[1], project_rel[0], user_id, project_name )
     return query
 
 def delete_from_project(user_name, project_name):

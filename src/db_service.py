@@ -155,6 +155,34 @@ class DbService:
         else:
             print('\tUser associated with id: {0} does not exist.\n\tSkill data rejected at ... {1}\n'.format(user_id, datetime.now()))
 
+    def add_many_new_organization_nodes(self, dataframe):
+        for row in dataframe.iterrows():
+            index, data = row
+            row_items = data.tolist()
+            row_items = self._make_list_correct_length(4, row_items)
+            self._add_new_organization_node('organization', row_items[0], row_items[1], row_items[2], row_items[3])
+
+    def _add_new_organization_node(self, label, user_id, organization_name, organization_type, description):
+        if not n_h.valid_org_type(organization_type):
+            print('\tOrg type {0} is not of type G, C, or U.\n\tOrganization data rejected at ... {1}\n'.format(organization_type, datetime.now()))
+            return
+        query = n_h.find_node('user', user_id)
+        exist_nodes_with_id = self._neo4j_graph.run(query)
+        if exist_nodes_with_id.data():             
+            query = n_h.create_node(label, [organization_name])
+            self._neo4j_graph.run(query)
+            query = n_h.match_organization_association(user_id, organization_name)  
+            exist_organization_with_name = self._neo4j_graph.run(query).data()
+            if len(exist_organization_with_name) == 0:
+                query = n_h.add_to_organization(user_id, organization_name, organization_type)
+                self._neo4j_graph.run(query)
+                mongo_organization = m_h.MongoDbSchema.Organization(organization_name, organization_type, description)
+                new_organization_doc = mongo_organization.create_new_organization_doc()
+                self._mongo_db[mongo_organization.table_name].insert(new_organization_doc) 
+                print('\tData saved for organization {0} at ... {1}\n'.format(organization_name, datetime.now()))
+        else:
+            print('\tUser associated with id: {0} does not exist.\n\tOrganization data rejected at ... {1}\n'.format(user_id, datetime.now()))
+
 
     def add_many_new_project_nodes(self, dataframe):
         for row in dataframe.iterrows():
@@ -216,7 +244,6 @@ class DbService:
         else:
             print('Data not deleted. Exiting.')
         
-
 if __name__ == '__main__':
     x = DbService()
 

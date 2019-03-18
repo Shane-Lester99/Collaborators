@@ -5,4 +5,6 @@ load_all_data:
     - mock-data/skill.csv,skill 
     - mock-data/interest.csv,interest
     - mock-data/project.csv,project
-    - mock-data/friend.csv,friend
+
+load_user_data:
+    - mock-data/user.csv,user

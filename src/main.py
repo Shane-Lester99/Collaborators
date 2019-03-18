@@ -19,7 +19,11 @@ class CollaboratorDotNet(cli.Application):
             # Not implemented
             _valid_file_types[6] : OrderedDict({'userid1': int, 'userid2':int})
     } 
-    
+
+    _yaml_option = cli.SwitchAttr(
+        ['-y', '--yaml-option'], mandatory=False, default='load_all_data',
+        help='In the yaml file specified at path from --input-many switch, can specify which attribue of yaml file you want to download. load_all_data is used by default. Must be used before the --input-many switch to work.'
+    )
 
     _db_service = None
 
@@ -28,7 +32,8 @@ class CollaboratorDotNet(cli.Application):
             print('Connecting to databases at ... {0}'.format(datetime.now()))
             self._db_service = DbService()
 
-    
+
+
     @cli.switch(['-m', '--input-many'], str)
     def input_lots_of_data(self, file_path_to_yaml):
         """ Input a list of csv files to input into input_data """
@@ -39,7 +44,8 @@ class CollaboratorDotNet(cli.Application):
                 yaml_file  = yaml.load(raw_config_file, yaml.FullLoader)
             except yaml.YAMLError as err:
                 raise err
-        for i in yaml_file['load_all_data']:
+        print(self._yaml_option)
+        for i in yaml_file[self._yaml_option]:
             self.input_data(i)
         
 
@@ -69,8 +75,9 @@ class CollaboratorDotNet(cli.Application):
             print("Loading {0} data at ... {1}\n\n".format(self._valid_file_types[1].upper(), datetime.now()))
             self._db_service.add_many_new_project_nodes(input_data)
         elif file_type == self._valid_file_types[2]:
-
-            print('{0} not yet implemented'.format(self._valid_file_types[2]))
+            # Organization switch 
+            print("Loading {0} data at ... {1}\n\n".format(self._valid_file_types[2].upper(), datetime.now()))
+            self._db_service.add_many_new_organization_nodes(input_data)
         elif file_type == self._valid_file_types[3]: 
             print("Loading {0} data at ... {1}\n\n".format(self._valid_file_types[3].upper(), datetime.now()))
             self._db_service.add_many_new_interest_nodes(input_data)

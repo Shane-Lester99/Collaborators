@@ -74,10 +74,10 @@ class MongoDbSchema(object):
         _description = None
         table_name = 'project'
         def __init__(self, name, description):
-            self._interest_project_name = name
+            self._project_name = name
             self._description = description
         def _make_usable(self):
-            if not self._interest_name:
+            if not self._project_name:
                 return False
             if not self._description:
                 self._description = 'Fill in information about this project'
@@ -88,5 +88,28 @@ class MongoDbSchema(object):
                     'description': self._description
                 }
                 return project_doc
-            print('Interest document not usable. Mongo schema error. Exiting.')
+            print('Project document not usable. Mongo schema error. Exiting.')
+            sys.exit(1)
+    class Organization(object):
+        _organization_name = None
+        _sector = None
+        _description = None
+        table_name = 'organization'
+        def __init__(self, name, sector, description):
+            self._organization_name = name
+            self._description = description
+        def _make_usable(self):
+            if not all(self._organization_name, self._sector):
+                return False
+            if not self._description:
+                self._description = 'Fill in information about this organization'
+        def create_new_organization_doc(self):
+            if self._make_usable:
+                organization_doc = {
+                    'organization': self._organization_name,
+                    'sector': self._sector,
+                    'description': self._description
+                }
+                return organization_doc
+            print('Organization document not usable. Mongo schema error. Exiting.')
             sys.exit(1)

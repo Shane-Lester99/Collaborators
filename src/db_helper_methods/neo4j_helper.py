@@ -17,20 +17,26 @@ from plumbum import local
 #from py2neo import Graph
 
 # constants for entity types
-user = ("user", "userid", "firstname", "lastname")
+user = ("user", "user_id", "first_name", "last_name")
 # TODO: VERY IMPORTANT: need to only allow three organizations (G, C, U)
-organization = ("Organization", "organization_name")
-project = ("project", "projectname")
-skill = ("skill", "skill")
-interest = ("interest", "interest")
+organization = ("organization", "organization_name")
+project = ("project", "project_name")
+skill = ("skill", "skill_name")
+interest = ("interest", "interest_name")
 
 # constants for labels:
 friendship_rel = ("is_friends_with", "added_on")
 skill_rel = ("is_skilled_at","skill_level")
 interest_rel = ("is_interested_in","interest_level")
 project_rel = ("works_on", "role")
-organization_rel = ("works_for", "address", "location")
+organization_rel = ("in_sector", "sector")
+# not implemented
 organization_to_project_rel = ("owns","priority")
+
+# extra constants and misc helpers:
+list_of_valid_org_types = ['U', 'G', 'C']
+def valid_org_type(org_type): 
+    return org_type in list_of_valid_org_types
 
 # Getter methods for nodes
 def find_node(label, node_name):
@@ -159,6 +165,23 @@ def delete_associated_skill(user_name, skill_name):
     return query
 
 
+
+def add_to_organization(user_id, organization_name, sector):  
+    organization_name = ' '.join(organization_name.lower().split()) 
+    sector = ' '.join(sector.lower().split())    
+    query = """MATCH (u1: {0} {{ {1} : {4} }}), (u2: {2}  {{ {3} : '{5}' }})
+                MERGE(u1) - [s : {6} {{ {7} : '{8}' }}] -> (u2)
+                RETURN u1, s,  u2""".format(user[0], user[1], organization[0], organization[1], user_id, organization_name, organization_rel[0], organization_rel[1], sector)
+    return query
+
+
+def match_organization_association(user_id, organization_name): 
+    organization_name = ' '.join(organization_name.lower().split())
+    # TODO: Would like some indication of what happened to caller returned here
+    query = """MATCH (u1: {0} {{ {1}: {5} }}) -[v: {4}] - (u2: {2} {{ {3}: '{6}' }} )
+                RETURN v""".format(user[0], user[1], organization[0], organization[1], organization_rel[0], user_id, organization_name )
+    return query
+
 def add_associated_interest(user_id, interest_name, interest_level):  
     interest_name = ' '.join(interest_name.lower().split()) 
     if not 1 <= interest_level <= 10:
@@ -210,6 +233,8 @@ def delete_from_project(user_name, project_name):
     query = """MATCH (u1: {0} {{ {1}: '{5}' }}) -[v: {4}] - (u2: {2} {{ {3}: '{6}' }} )
                 DELETE v""".format(user[0], user[1], project[0], project[1], project_rel[0], user_name, project_name )
     return query
+
+# NOT IMPLEMENTED
 
 def add_project_to_organization(organization_name, project_name, priority): 
     project_name = ' '.join(project_name.lower().split())

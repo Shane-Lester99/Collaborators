@@ -6,9 +6,6 @@ from datetime import datetime
 import sys 
 import os
 from plumbum import local
-#sys.path.append('./..')
-#from db_service import DbService
-
 
 # TODO: Connect to neo4j
 # TODO: Add some sort of statuses and return values for each query to give feedback of how the query went
@@ -30,6 +27,7 @@ skill_rel = ("is_skilled_at","skill_level")
 interest_rel = ("is_interested_in","interest_level")
 project_rel = ("works_on", "role")
 organization_rel = ("in_sector", "sector")
+organization_to_organization_rel = ("in_distance", "distance")
 # not implemented
 organization_to_project_rel = ("owns","priority")
 
@@ -37,6 +35,8 @@ organization_to_project_rel = ("owns","priority")
 list_of_valid_org_types = ['U', 'G', 'C']
 def valid_org_type(org_type): 
     return org_type in list_of_valid_org_types
+
+
 
 # Getter methods for nodes
 def find_node(label, node_name):
@@ -166,6 +166,25 @@ def delete_associated_skill(user_name, skill_name):
 
 
 
+
+def match_organization_distance_association(org1, org2):
+    org1 = ' '.join(org1.lower().split())
+    org2 = ' '.join(org2.lower().split())
+    # TODO: Would like a boolean here indicating whether it was created and returning the nodes/ rel
+    query = """MATCH (u1: {0} {{ {1}: '{2}' }}) - [] -> (u2: {0} {{ {1}: '{3}' }})
+                RETURN u1, u2""".format(organization[0], organization[1], org1, org2)
+    return query
+
+
+def add_organization_distance_association(org1, org2, distance):
+    org1 = ' '.join(org1.lower().split())
+    org2 = ' '.join(org2.lower().split())
+    # TODO: Would like a boolean here indicating whether it was created and returning the nodes/ rel
+    query = """MATCH (u1: {0} {{ {1}: '{2}' }}), (u2: {0} {{ {1}: '{3}' }})
+                MERGE(u1) - [ :{4} {{ {5} : {6} }}] -> (u2)
+                RETURN u1, u2""".format(organization[0], organization[1], org1, org2, organization_to_organization_rel[0], organization_to_organization_rel[1], distance )
+    return query
+
 def add_to_organization(user_id, organization_name, sector):  
     organization_name = ' '.join(organization_name.lower().split()) 
     sector = ' '.join(sector.lower().split())    
@@ -260,10 +279,11 @@ def remove_project_from_organization(organization_name, project_name):
 if __name__ == '__main__':
     #print(create_friendship('Jessica', 'Amanda'))
     #print(delete_friendship('Jessica','Amanda'))
-
+    
+    print(match_organization_distance_association('o2', 'o1'))
    # print("New method")
     #print(delete_node("User", "Shane"))
-    print(create_node('user', [5,'Helena','Jacoba']))
+    #print(create_node('user', [5,'Helena','Jacoba']))
     #print(create_node('User', 'Jessica Ambers'))
     #print(create_node("Skill", "Cloud Computing"))
     #print(create_node('Skill', "Programming"))

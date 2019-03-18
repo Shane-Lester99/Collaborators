@@ -79,10 +79,13 @@ class CollaboratorDotNet(cli.Application):
             print("Loading {0} data at ... {1}\n\n".format(self._valid_file_types[2].upper(), datetime.now()))
             self._db_service.add_many_new_organization_nodes(input_data)
         elif file_type == self._valid_file_types[3]: 
+            # Interest switch
             print("Loading {0} data at ... {1}\n\n".format(self._valid_file_types[3].upper(), datetime.now()))
             self._db_service.add_many_new_interest_nodes(input_data)
         elif file_type == self._valid_file_types[4]:
-            print('{0} not yet implemented'.format(self._valid_file_types[4]))
+            # Distance switch 
+            print("Loading {0} data at ... {1}\n\n".format(self._valid_file_types[4].upper(), datetime.now()))
+            self._db_service.add_many_new_distance_rels(input_data)
         elif file_type == self._valid_file_types[5]:
             # Skill associated with user switch
             print('Loading {0} data at  ... {1}\n\n'.format(self._valid_file_types[5].upper(), datetime.now()))

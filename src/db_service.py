@@ -101,6 +101,36 @@ class DbService:
                 row_items.append(None)
         return row_items
 
+    def add_many_new_distance_rels(self, dataframe): 
+        for row in dataframe.iterrows():
+            index, data = row
+            row_items = data.tolist()
+            row_items = self._make_list_correct_length(3, row_items)
+            self._add_new_distance_rel('distance', row_items[0], row_items[1], row_items[2])
+
+    def _add_new_distance_rel(self, label, org1, org2, distance):        
+        query = n_h.find_node('organization', org1)
+        exist_organization_with_name_1 = self._neo4j_graph.run(query)
+        query = n_h.find_node('organization', org2)
+        exist_organization_with_name_2 = self._neo4j_graph.run(query)
+        if not all([exist_organization_with_name_1.data(), exist_organization_with_name_2.data()]):
+            print('\tBoth organizations {0} and {1} do not exist in system.\n\tRelationship data rejected at ... {2}\n'.format(org1, org2, datetime.now()))
+            return
+        query = n_h.match_organization_distance_association(org1, org2)
+        exist_rel = self._neo4j_graph.run(query)
+        exist_rel = exist_rel.data()
+        if len(exist_rel) == 0:
+            query = n_h.add_organization_distance_association(org1, org2, distance)
+            self._neo4j_graph.run(query)
+            print('\tDistance of {0} saved between organizations {1} and {2}  at ... {3}\n'.format(distance, org1, org2, datetime.now()))
+        else:
+            print('\tData associated with distance between {0} and {1} already present.\n\tInterest data rejected at ... {2}\n'.format(org1, org2, datetime.now()))
+       
+      
+
+
+
+
     def add_many_new_interest_nodes(self, dataframe):
         for row in dataframe.iterrows():
             index, data = row

@@ -1,7 +1,7 @@
 load_all_data:
     - mock-data/user.csv,user
-    - mock-data/distance.csv,distance
     - mock-data/organization.csv,organization
+    - mock-data/distance.csv,distance
     - mock-data/skill.csv,skill 
     - mock-data/interest.csv,interest
     - mock-data/project.csv,project

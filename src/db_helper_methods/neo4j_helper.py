@@ -21,7 +21,7 @@ user = ("user", "userid", "firstname", "lastname")
 # TODO: VERY IMPORTANT: need to only allow three organizations (G, C, U)
 organization = ("Organization", "organization_name")
 project = ("Project", "project_name")
-skill = ("Skill", "skill_name")
+skill = ("skill", "skill")
 interest = ("Interest", "interest_name")
 
 # constants for labels:
@@ -31,9 +31,6 @@ interest_rel = ("is_interested_in","interest_level")
 project_rel = ("works_on", "role")
 organization_rel = ("works_for", "address", "location")
 organization_to_project_rel = ("owns","priority")
-
-
-
 
 # Getter methods for nodes
 def find_node(label, node_name):
@@ -64,7 +61,7 @@ def find_node(label, node_name):
 
 def create_node(label, node_data):
     # TODO: Would like a boolean here indicating whether it was successful or not
-    node_type = None
+    node_type = None 
     for i in range(0,len(node_data),1):
         if type(node_data[i]) == str:
             node_data[i] = ' '.join(node_data[i].lower().split())
@@ -88,7 +85,7 @@ def create_node(label, node_data):
             ON CREATE SET u.{3}  ='{6}'
             RETURN u""".format(node_type[0], node_type[1], node_type[2], node_type[3], node_data[0], node_data[1], node_data[2] )
     else: 
-        query = "MERGE (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(node_type[0], node_type[3], node_type[1], node_type[2], node_data[0],  )
+        query = "MERGE (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(node_type[0], node_type[1], node_data[0]  )
     return query
 
 # Delete methods for nodes
@@ -136,14 +133,21 @@ def delete_friendship(user1, user2):
     return query
 
 
-def add_associated_skill(user_name, skill_name, skill_level): 
-    user_name = ' '.join(user_name.lower().split())
+def add_associated_skill(user_id, skill_name, skill_level):  
     skill_name = ' '.join(skill_name.lower().split()) 
     if not 1 <= skill_level <= 10:
         return
-    query = """MATCH (u1: {0} {{ {1} : '{4}' }}), (u2: {2}  {{ {3} : '{5}' }})
+    query = """MATCH (u1: {0} {{ {1} : {4} }}), (u2: {2}  {{ {3} : '{5}' }})
                 MERGE(u1) - [s : {6} {{ {7} : {8} }}] -> (u2)
-                RETURN u1, s,  u2""".format(user[0], user[1], skill[0], skill[1], user_name, skill_name, skill_rel[0], skill_rel[1], skill_level)
+                RETURN u1, s,  u2""".format(user[0], user[1], skill[0], skill[1], user_id, skill_name, skill_rel[0], skill_rel[1], skill_level)
+    return query
+
+
+def match_associated_skill(user_id, skill_name): 
+    skill_name = ' '.join(skill_name.lower().split())
+    # TODO: Would like some indication of what happened to caller returned here
+    query = """MATCH (u1: {0} {{ {1}: {5} }}) -[v: {4}] - (u2: {2} {{ {3}: '{6}' }} )
+                RETURN v""".format(user[0], user[1], skill[0], skill[1], skill_rel[0], user_id, skill_name )
     return query
 
 def delete_associated_skill(user_name, skill_name):

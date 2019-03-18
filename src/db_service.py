@@ -44,7 +44,7 @@ class DbService:
         self._connect_to_mongo()
         try: 
             self._mongo_db = self._mongo_client[self._config['mongodb']['database_name']]
-            print(self._mongo_db.collection_names(), self._mongo_db['user'])
+            self._mongo_db.collection_names()
             
         except Exception as err:
             print(err)
@@ -89,20 +89,41 @@ class DbService:
                 ) 
         self._mongo_client = MongoClient(uri)
 
+    def add_many_new_skill_nodes(self, dataframe):
+        for row in dataframe.iterrows():
+            index, data = row
+            row_items = data.tolist()
+            self._add_new_skill_node('skill', row_items[0], row_items[1], row_items[2], row_items[3])
+
+    def _add_new_skill_node(self, label, user_id, skill_name, skill_level, description):
+        query = n_h.find_node('user', user_id)
+        exist_nodes_with_id = self._neo4j_graph.run(query)
+        if exist_nodes_with_id.data():
+            query = n_h.create_node(label, [skill_name])
+            self._neo4j_graph.run(query)
+            query = n_h.match_associated_skill(user_id, skill_name) 
+            exist_skill_with_name = self._neo4j_graph.run(query).data()
+            if len(exist_skill_with_name) == 0:
+                query = n_h.add_associated_skill(user_id, skill_name, skill_level)
+                self._neo4j_graph.run(query)
+                mongo_skill = m_h.MongoDbSchema.Skill(skill_name, description)
+                new_skill_doc = mongo_skill.create_new_skill_doc()
+                self._mongo_db[mongo_skill.table_name].insert(new_skill_doc) 
+                print('\tData saved for skill {0} at ... {1}'.format(skill_name, datetime.now()))
+            else:
+                print('\tData associated with skill {0} already present.\n\tSkill data rejected at ... {1}\n'.format(skill_name, datetime.now()))
+        else:
+            print('\tUser associated with id: {0} does not exist.\n\tSkill data rejected at ... {1}\n'.format(user_id, datetime.now()))
+
     def add_many_new_user_nodes(self, dataframe):
         # Take the dataframe and for each row add a new nor
         for row in dataframe.iterrows():
             index, data = row
             row_items = data.tolist()
             self._add_new_user_node('user', row_items[0], row_items[1], row_items[2], row_items[3])
-            
 
     def _add_new_user_node(self, label, user_id, first_name, last_name, description):
-        #print('label: {0}, f: {1}, l: {2}, id: {3}, other: {4}'.format(label, first_name, last_name, user_id, description))
-        # TODO: push user data to neo4j and mongo here 
-        query = n_h.find_node(label, user_id)
-        #query = n_h.create_node(label, [user_id, first_name, last_name])
-        #print(query)
+        query = n_h.find_node(label, user_id) 
         exist_nodes_with_id = self._neo4j_graph.run(query)
         if len(exist_nodes_with_id.data()) == 0: 
             query = n_h.create_node(label, [user_id, first_name, last_name])
@@ -111,13 +132,19 @@ class DbService:
             #self._mongo_db[mongo_user.table_name].            
             new_user_doc = mongo_user.create_new_user_doc()
             self._mongo_db[mongo_user.table_name].insert(new_user_doc)
-            print('Data saved for user with id {0} at ... {1}'.format(user_id, datetime.now()))
+            print('\tData saved for user with id {0} at ... {1}'.format(user_id, datetime.now()))
         else:
-            print('Data already downloaded for user with id: {0}\nNew user rejected at ... {1}\n'.format(user_id, datetime.now()))
+            print('\tData already downloaded for user with id: {0}\n\tNew user rejected at ... {1}\n'.format(user_id, datetime.now()))
 
-
-
-
+    def __delete_all_data(self):
+        ans = input('Are you sure you want to delete all data?(Y/N)')
+        if ans == 'Y':
+            query = 'MATCH (n) DETACH DELETE n;'
+            self._neo4j_graph.run(query)
+            print('Mongo data not yet deleted')
+        else:
+            print('Data not deleted. Exiting.')
+        
 
 if __name__ == '__main__':
     x = DbService()

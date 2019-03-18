@@ -16,6 +16,7 @@ class CollaboratorDotNet(cli.Application):
             _valid_file_types[3] : OrderedDict({'userid': int, 'interest': str, 'interestlevel': int, 'description':str}),
             _valid_file_types[4] : OrderedDict({"organization1": str, "organization2": str, "distance": int}),
             _valid_file_types[5] : OrderedDict({'userid': int, 'firstname': str, 'lastname': str, 'description': str}),
+            # Not implemented
             _valid_file_types[6] : OrderedDict({'userid1': int, 'userid2':int})
     } 
     
@@ -59,9 +60,10 @@ class CollaboratorDotNet(cli.Application):
         print('Attempting to read data from {0} at ... {1}'.format(file_path, datetime.now())) 
         input_data = self.read_data(file_path, file_type)
         print('Data read and cleaned at ... {0}\n'.format(datetime.now()))
-        # TODO: Load the data according to the appropriate file
         if file_type == self._valid_file_types[0]:
-            print('{0} not yet implemented'.format(self._valid_file_types[0]))
+            # User skill switch
+            print("Loading {0} data at ... {1}".format(self._valid_file_types[0].upper(), datetime.now()))
+            self._db_service.add_many_new_skill_nodes(input_data)
         elif file_type == self._valid_file_types[1]:
             print('{0} not yet implemented'.format(self._valid_file_types[1]))
         elif file_type == self._valid_file_types[2]:
@@ -71,11 +73,9 @@ class CollaboratorDotNet(cli.Application):
         elif file_type == self._valid_file_types[4]:
             print('{0} not yet implemented'.format(self._valid_file_types[4]))
         elif file_type == self._valid_file_types[5]:
-            # This will be the user data insertion
-            print('{0} is currently being implemented'.format(self._valid_file_types[5]))
+            # Skill associated with user switch
+            print('Loading {0} data at  ... {1}'.format(self._valid_file_types[5].upper(), datetime.now()))
             self._db_service.add_many_new_user_nodes(input_data)
-        elif file_type == self._valid_file_types[6]:
-            print('{0} not yet implemented'.format(self._valid_file_types[6]))
      
 
     def read_data(self, file_path, file_type):

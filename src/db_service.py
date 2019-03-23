@@ -45,7 +45,6 @@ class DbService:
         try: 
             self._mongo_db = self._mongo_client[self._config['mongodb']['database_name']]
             self._mongo_db.collection_names()
-            
         except Exception as err:
             print(err)
             print("MongoDb failed to connect at ... {0}\nPlease check readme for proper MongoDb connection. Exiting.".format(datetime.now()))
@@ -261,15 +260,16 @@ class DbService:
         else:
             print('\tData already downloaded for user with id: {0}\n\tNew user rejected at ... {1}\n'.format(user_id, datetime.now()))
 
-    def __delete_all_data(self):
+    def delete_all_data(self):
         ans = input('Are you sure you want to delete all data?(Y/N)')
         if ans == 'Y':
             query = 'MATCH (n) DETACH DELETE n;'
             self._neo4j_graph.run(query)
-            print('Mongo data not yet deleted')
+            for table_name in self._mongo_db.collection_names():
+                self._mongo_db[table_name].drop()
+            print('All data deleted. Exiting.')
         else:
-            print('Data not deleted. Exiting.')
-
+            print('Data not deleted. Exiting.') 
 
     # READS *******
     def get_all_of_node_type(self, node_type):
@@ -290,6 +290,18 @@ class DbService:
                 print(print_string) 
         print('\nAll data retrievd at ... {0}\n'.format(datetime.now()))
 
+    def get_specific_info(self, label, key):
+        if label in m_h.MongoDbSchema.all_table_names: 
+            query = m_h.MongoDbSchema.look_up(m_h.MongoDbSchema, label, key) 
+            print(query)
+            print(list(self._mongo_db[label].find(query)))
+            
+        else: 
+            print('No table name to match label. Mongo Schema error. Please fix schema in code. Exiting')
+            sys.exit(1)
+      
+
 if __name__ == '__main__':
     x = DbService()
+    x.delete_all_data()
 

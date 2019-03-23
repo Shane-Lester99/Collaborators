@@ -3,6 +3,7 @@ from datetime import datetime
 from collections import OrderedDict
 import pandas as pd
 import yaml
+import sys
 from db_service import DbService
 
 class CollaboratorDotNet(cli.Application):
@@ -58,7 +59,11 @@ class CollaboratorDotNet(cli.Application):
    
     @cli.switch(['-i', '--input'], str)
     def input_data(self, file_path_and_type):
-        """ Input data, enter a string of form file_type,file_path  """
+        """ 
+        
+        Input data, enter a string of form file_type,file_path  
+        
+        """
         self.connect_to_db()
         file_path, file_type = file_path_and_type.split(',')
         print('Reading file of type {0} from {1} at ... {2}'.format(file_type, file_path, datetime.now())) 
@@ -144,7 +149,11 @@ class CollaboratorDotNet(cli.Application):
     #******************* write interface: *********************************
     @cli.switch(["--about"])
     def about(self):
-        """ A little bit of information about collaborator.net """
+        """ 
+        
+        A little bit of information about collaborator.net 
+        
+        """
         print()
         print("Welcome to collaborator.net. A command line tool to store and query professional")
         print("social networking information. Please read the README.md document attached for details")
@@ -155,11 +164,13 @@ class CollaboratorDotNet(cli.Application):
     #    """ List of available queries """
     #    print("Here are all the available queries for collaborator.net")
 
-    @cli.switch(['--get-all'], str)
+    @cli.switch(['a', '--get-all'], str)
     def get_all_of_node_type(self, node_type):
         """ 
-        Flag to retrieve nodes of a particular type. Valid input types are skill, project, user, and organization. 
+
+        Flag to retrieve nodes of a particular type. Valid input types are interest, skill, project, user, and organization. 
         Output will be all nodes of that type and there data outputted to terminal.
+
         """
         self.connect_to_db()
         print('Searching for data of type {0} at ... {1}\n'.format(node_type, datetime.now()))
@@ -168,6 +179,33 @@ class CollaboratorDotNet(cli.Application):
             self._db_service.get_all_of_node_type(node_type)
         else:
             print('Node type {0} is not a valid type.\nExiting at {1}'.format(node_type, datetime.now()))
+
+
+    @cli.switch(['-s', '--get-specific-information'], str)
+    def get_specific_information(self, raw_info_string):
+        """
+
+        This switch will allow retrieval of specific information based on the key of a node type.
+        The input options are:
+        $> python main.py --get-specific-information user,1
+        $> python main.py --get-specific-information project,some_project
+        $> python main.py --get-specific-information organization,some_org 
+        $> python main.py --get-specific-information skill,some_skill
+        $> python main.py --get-specific-information interest,some_interest
+        
+        """
+        self.connect_to_db()
+        label, key = raw_info_string.split(',')
+        if label not in ('user', 'project', 'skill', 'interest', 'organization'):
+            print('Label {0} not found. Exiting'.format(label))
+            sys.exit(1)
+        if label == 'user':
+            try:
+                key = int(key)
+            except ValueError as err:
+                raise err
+        print('Retrieving information about {0} with key {1} at ... {2}'.format(label, key, datetime.now()))
+        self._db_service.get_specific_info(label, key)
 
     def main(self):
 

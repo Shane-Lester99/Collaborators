@@ -1,10 +1,38 @@
+import sys
+
 class MongoDbSchema(object):
+    def look_up(self, table_name, key):
+        if isinstance(key, str):
+            key = key.lower()
+        if table_name == 'user':
+            try:
+                key = int(key)
+            except ValueError as err:
+                raise err
+            return { self.User.key : key }
+
+        elif table_name == 'project':
+            return { self.Project.key : str(key) }
+
+        elif table_name == 'skill':
+            return { self.Skill.key : str(key) }
+
+        elif table_name == 'interest':
+            return {self.Interest.key : str(key) }
+
+        elif table_name == 'organization':
+            return { self.Organization.key :  str(key) }
+        else:
+            print('Table does not exist. Mongo schema error. Exiting.')
+            sys.exit(1)
+
     all_table_names = ('user', 'project', 'skill', 'interest', 'organization')
     class User(object):
         _first_name = None
         _last_name = None
         _user_id = None
         _description = None
+        key = 'userid'
         table_name = 'user'
         def __init__(self, first_name, last_name, user_id, description):
             self._first_name = first_name
@@ -32,6 +60,7 @@ class MongoDbSchema(object):
         _skill_name = None
         _description = None
         table_name = 'skill'
+        key = 'skill'
         def __init__(self, name, description):
             self._skill_name = name
             self._description = description
@@ -43,7 +72,7 @@ class MongoDbSchema(object):
         def create_new_skill_doc(self):
             if self._make_usable:
                 skill_doc = {
-                    'skill': self._skill_name,
+                    'skill': self._skill_name.lower(),
                     'description': self._description
                 }
                 return skill_doc
@@ -53,6 +82,7 @@ class MongoDbSchema(object):
         _interest_name = None
         _description = None
         table_name = 'interest'
+        key = 'interest'
         def __init__(self, name, description):
             self._interest_name = name
             self._description = description
@@ -64,7 +94,7 @@ class MongoDbSchema(object):
         def create_new_interest_doc(self):
             if self._make_usable:
                 interest_doc = {
-                    'interest': self._interest_name,
+                    'interest': self._interest_name.lower(),
                     'description': self._description
                 }
                 return interest_doc
@@ -74,6 +104,7 @@ class MongoDbSchema(object):
         _project_name = None
         _description = None
         table_name = 'project'
+        key = 'project'
         def __init__(self, name, description):
             self._project_name = name
             self._description = description
@@ -85,7 +116,7 @@ class MongoDbSchema(object):
         def create_new_project_doc(self):
             if self._make_usable:
                 project_doc = {
-                    'project': self._project_name,
+                    'project': self._project_name.lower(),
                     'description': self._description
                 }
                 return project_doc
@@ -96,6 +127,7 @@ class MongoDbSchema(object):
         _sector = None
         _description = None
         table_name = 'organization'
+        key = 'organization'
         def __init__(self, name, sector, description):
             self._organization_name = name
             self._description = description
@@ -107,7 +139,7 @@ class MongoDbSchema(object):
         def create_new_organization_doc(self):
             if self._make_usable:
                 organization_doc = {
-                    'organization': self._organization_name,
+                    'organization': self._organization_name.lower(),
                     'sector': self._sector,
                     'description': self._description
                 }

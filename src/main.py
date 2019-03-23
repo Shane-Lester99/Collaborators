@@ -205,7 +205,8 @@ class CollaboratorDotNet(cli.Application):
             except ValueError as err:
                 raise err
         print('Retrieving information about {0} with key {1} at ... {2}'.format(label, key, datetime.now()))
-        self._db_service.get_specific_info(label, key)
+        info_list = self._db_service.get_specific_info(label, key)
+        print(info_list)
 
     def main(self):
 

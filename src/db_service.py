@@ -9,14 +9,6 @@ sys.path.append(local.path(__file__).dirname.up())
 from db_helper_methods import neo4j_helper as n_h
 from db_helper_methods import mongodb_helper as m_h
 
-# Get access to mongo
-#import pymongo
-#from pymongo import MongoClient
-#print(pymongo)
-#myclient = pymongo.MongoClient()
-#mydb = myclient['mydatabase']
-#mycol=myclient['cusomters']
-
 class DbService:
 
     _yaml_link = '../config/db.yaml'
@@ -144,9 +136,14 @@ class DbService:
             if len(exist_interest_with_name) == 0:
                 query = n_h.add_associated_interest(user_id, interest_name, interest_level)
                 self._neo4j_graph.run(query)
-                mongo_interest = m_h.MongoDbSchema.Interest(interest_name, description)
-                new_interest_doc = mongo_interest.create_new_interest_doc()
-                self._mongo_db[mongo_interest.table_name].insert(new_interest_doc) 
+
+                if not self.get_specific_info('interest', interest_name):
+                    print('\tDocument not found for interest {0}. Creating document at ... {1}'.format(interest_name, datetime.now()))
+                    mongo_interest = m_h.MongoDbSchema.Interest(interest_name, description)
+                    new_interest_doc = mongo_interest.create_new_interest_doc()
+                    self._mongo_db[mongo_interest.table_name].insert(new_interest_doc) 
+                else:
+                    pass
                 print('\tData saved for interest {0} at ... {1}\n'.format(interest_name, datetime.now()))
             else:
                 print('\tData associated with interest {0} already present.\n\tInterest data rejected at ... {1}\n'.format(interest_name, datetime.now()))
@@ -171,9 +168,11 @@ class DbService:
             if len(exist_skill_with_name) == 0:
                 query = n_h.add_associated_skill(user_id, skill_name, skill_level)
                 self._neo4j_graph.run(query)
-                mongo_skill = m_h.MongoDbSchema.Skill(skill_name, description)
-                new_skill_doc = mongo_skill.create_new_skill_doc()
-                self._mongo_db[mongo_skill.table_name].insert(new_skill_doc) 
+                if not self.get_specific_info('skill', skill_name):
+                    print('\tDocument not found for skill {0}. Creating document at ... {1}'.format(skill_name, datetime.now()))
+                    mongo_skill = m_h.MongoDbSchema.Skill(skill_name, description)
+                    new_skill_doc = mongo_skill.create_new_skill_doc()
+                    self._mongo_db[mongo_skill.table_name].insert(new_skill_doc) 
                 print('\tData saved for skill {0} at ... {1}\n'.format(skill_name, datetime.now()))
             else:
                 print('\tData associated with skill {0} already present.\n\tSkill data rejected at ... {1}\n'.format(skill_name, datetime.now()))
@@ -201,9 +200,14 @@ class DbService:
             if len(exist_organization_with_name) == 0:
                 query = n_h.add_to_organization(user_id, organization_name, organization_type)
                 self._neo4j_graph.run(query)
-                mongo_organization = m_h.MongoDbSchema.Organization(organization_name, organization_type, description)
-                new_organization_doc = mongo_organization.create_new_organization_doc()
-                self._mongo_db[mongo_organization.table_name].insert(new_organization_doc) 
+
+                if not self.get_specific_info('organization', organization_name):
+                    print('\tDocument not found for organization {0}. Creating document at ... {1}'.format(organization_name, datetime.now()))
+                    mongo_organization = m_h.MongoDbSchema.Organization(organization_name, organization_type, description)
+                    new_organization_doc = mongo_organization.create_new_organization_doc()
+                    self._mongo_db[mongo_organization.table_name].insert(new_organization_doc) 
+                else:
+                    pass
                 print('\tData saved for organization {0} at ... {1}\n'.format(organization_name, datetime.now()))
         else:
             print('\tUser associated with id: {0} does not exist.\n\tOrganization data rejected at ... {1}\n'.format(user_id, datetime.now()))
@@ -230,9 +234,14 @@ class DbService:
             if len(exist_project_with_name) == 0:
                 query = n_h.add_to_project(user_id, project_name, role)
                 self._neo4j_graph.run(query)
-                mongo_project = m_h.MongoDbSchema.Project(project_name, description)
-                new_project_doc = mongo_project.create_new_project_doc()
-                self._mongo_db[mongo_project.table_name].insert(new_project_doc) 
+
+                if not self.get_specific_info('project', project_name):
+                    print('\tDocument not found for project {0}. Creating document at ... {1}'.format(project_name, datetime.now()))
+                    mongo_project = m_h.MongoDbSchema.Project(project_name, description)
+                    new_project_doc = mongo_project.create_new_project_doc()
+                    self._mongo_db[mongo_project.table_name].insert(new_project_doc) 
+                else:
+                    pass
                 print('\tData saved for project {0} at ... {1}\n'.format(project_name, datetime.now()))
             else:
                 print('\tData associated with project {0} already present.\n\tProject data rejected at ... {1}\n'.format(project_name, datetime.now()))
@@ -252,10 +261,13 @@ class DbService:
         if len(exist_nodes_with_id.data()) == 0: 
             query = n_h.create_node(label, [user_id, first_name, last_name])
             self._neo4j_graph.run(query)
-            mongo_user = m_h.MongoDbSchema.User(first_name, last_name, user_id, description)
-            #self._mongo_db[mongo_user.table_name].            
-            new_user_doc = mongo_user.create_new_user_doc()
-            self._mongo_db[mongo_user.table_name].insert(new_user_doc)
+            if not self.get_specific_info('user', user_id):
+                print('\tDocument not found for user {0}. Creating document at ... {1}'.format(user_id, datetime.now()))
+                mongo_user = m_h.MongoDbSchema.User(first_name, last_name, user_id, description) 
+                new_user_doc = mongo_user.create_new_user_doc()
+                self._mongo_db[mongo_user.table_name].insert(new_user_doc)
+            else:
+                print('\tDocument already exists for user {0}. Skipping document creation at ... {1}'.format(user_id, datetime.now()))
             print('\tData saved for user with id {0} at ... {1}\n'.format(user_id, datetime.now()))
         else:
             print('\tData already downloaded for user with id: {0}\n\tNew user rejected at ... {1}\n'.format(user_id, datetime.now()))
@@ -292,9 +304,11 @@ class DbService:
 
     def get_specific_info(self, label, key):
         if label in m_h.MongoDbSchema.all_table_names: 
-            query = m_h.MongoDbSchema.look_up(m_h.MongoDbSchema, label, key) 
-            print(query)
-            print(list(self._mongo_db[label].find(query)))
+            query = m_h.MongoDbSchema.look_up(m_h.MongoDbSchema, label, key)
+            val_list = list(self._mongo_db[label].find(query))
+            if not val_list:
+                return None
+            return val_list
             
         else: 
             print('No table name to match label. Mongo Schema error. Please fix schema in code. Exiting')

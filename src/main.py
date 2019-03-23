@@ -186,12 +186,8 @@ class CollaboratorDotNet(cli.Application):
         """
 
         This switch will allow retrieval of specific information based on the key of a node type.
-        The input options are:
-        $> python main.py --get-specific-information user,1
-        $> python main.py --get-specific-information project,some_project
-        $> python main.py --get-specific-information organization,some_org 
-        $> python main.py --get-specific-information skill,some_skill
-        $> python main.py --get-specific-information interest,some_interest
+        The input options are: (user,some_user_id_integer), (project,some_project_str), 
+        (organization,some_org, (skill,some_skill_str) , (interest,some_interest_str).
         
         """
         self.connect_to_db()
@@ -206,7 +202,17 @@ class CollaboratorDotNet(cli.Application):
                 raise err
         print('Retrieving information about {0} with key {1} at ... {2}'.format(label, key, datetime.now()))
         info_list = self._db_service.get_specific_info(label, key)
-        print(info_list)
+        if info_list:
+            print('Information found about {0} with key {1} at ... {2}\n'.format(label, key, datetime.now()))
+            for node in info_list:
+                print_value = ''
+                for (key, value) in node.items():
+                    if (key != '_id'):
+                        print("\t" + key + ": " + str(value) + ";")
+            print()
+
+        else:
+            print('No information found about {0} with key {1}. at ... {2}'.format(label, key, datetime.now()))
 
     def main(self):
 

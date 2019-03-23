@@ -1,4 +1,5 @@
 class MongoDbSchema(object):
+    all_table_names = ('user', 'project', 'skill', 'interest', 'organization')
     class User(object):
         _first_name = None
         _last_name = None

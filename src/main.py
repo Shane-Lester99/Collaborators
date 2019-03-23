@@ -6,6 +6,11 @@ import yaml
 from db_service import DbService
 
 class CollaboratorDotNet(cli.Application):
+    PROGNAME = "Collaborator.Net"
+    VERSION = "0.0"
+    DESCRIPTION = "This is a command line tool to store and query professional social networking information."
+    # ********************************* read interface ********************************************
+
     # Types of acceptable files at command line
     _valid_file_types = ('skill', 'project', 'organization', 'interest', 'distance', 'user', 'friend')
     # Structure of csv columns 
@@ -29,7 +34,7 @@ class CollaboratorDotNet(cli.Application):
 
     def connect_to_db(self):
         if not self._db_service:
-            print('Connecting to databases at ... {0}'.format(datetime.now()))
+            print('Connecting to databases at ... {0}\n'.format(datetime.now()))
             self._db_service = DbService()
 
 
@@ -135,8 +140,37 @@ class CollaboratorDotNet(cli.Application):
             print("Failed to match valid proper csv data structure  at ... {0}".format(datetime.now()))
             err_message = 'Invalid file structure at "{0}", exiting'.format(file_path)
             raise TypeError(err_message)
-    def main(self):
-        pass
 
+    #******************* write interface: *********************************
+    @cli.switch(["--about"])
+    def about(self):
+        """ A little bit of information about collaborator.net """
+        print()
+        print("Welcome to collaborator.net. A command line tool to store and query professional")
+        print("social networking information. Please read the README.md document attached for details")
+        print("on how to use the application.")
+        print()
+    #@cli.switch(["--query-menu"])
+    #def list_queries(self):
+    #    """ List of available queries """
+    #    print("Here are all the available queries for collaborator.net")
+
+    @cli.switch(['--get-all'], str)
+    def get_all_of_node_type(self, node_type):
+        """ 
+        Flag to retrieve nodes of a particular type. Valid input types are skill, project, user, and organization. 
+        Output will be all nodes of that type and there data outputted to terminal.
+        """
+        self.connect_to_db()
+        print('Searching for data of type {0} at ... {1}\n'.format(node_type, datetime.now()))
+        valid_node_types = self._valid_file_types[:4] + (self._valid_file_types[5],) 
+        if node_type in (valid_node_types):
+            self._db_service.get_all_of_node_type(node_type)
+        else:
+            print('Node type {0} is not a valid type.\nExiting at {1}'.format(node_type, datetime.now()))
+
+    def main(self):
+
+        pass
 if __name__=='__main__':
     CollaboratorDotNet.run()

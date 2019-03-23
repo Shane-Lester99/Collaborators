@@ -37,6 +37,40 @@ def valid_org_type(org_type):
     return org_type in list_of_valid_org_types
 
 
+# Advanced queries
+
+def people_on_path_of(user_id):
+    query = """
+        MATCH (main_user : user {{ user_id : {0} }})-[i_lvl: is_interested_in | is_skilled_at] -> (thang)
+        MATCH (main_user) - [:in_sector] -> (main_org: organization)
+        MATCH (other_users: user) - [] -> (thang)
+        WHERE NOT other_users.user_id = {0}
+        MATCH (other_users) - [:in_sector] -> (other_org: organization)
+        OPTIONAL MATCH (other_org) - [dist :in_distance] - (main_org)
+        WHERE other_org = main_org or dist.distance <= 10
+        RETURN DISTINCT main_user, thang, other_users, main_org, dist, other_org
+    """.format(user_id)
+    return query
+    
+def trusted_colleagues_of_colleagues(user_id, is_skill):
+    if (is_skill):
+        query = """
+            MATCH (main_user: user {{ user_id: {0} }})-[level : is_skilled_at] -> (skills)
+            MATCH (main_user) - [role :works_on] -> (projects)
+            MATCH (other_users: user) -[:works_on] -> (projects)
+            MATCH (other_users) - [ :is_skilled_at] -> (skills)
+            WHERE NOT other_users.user_id = {0}
+            return main_user, other_users, role, projects, level, skills 
+        """.format(user_id)
+    else:
+        query = """
+            MATCH (main_user: user {{ user_id: {0} }})-[level :is_interested_in] -> (interests)
+            MATCH (main_user) - [role :works_on] -> (projects)
+            MATCH (other_users: user) -[:works_on] -> (projects)
+            MATCH (other_users) - [ :is_interested_in] -> (interests)
+            WHERE NOT other_users.user_id = {0}
+            return main_user, other_users, role, projects, level, interests
+        """.format(user_id)
 
 # Getter methods for nodes
 def find_node(label, node_name):
@@ -62,6 +96,27 @@ def find_node(label, node_name):
     else:
         query = "MATCH (u: {0} {{ {1} : '{2}' }} ) RETURN u".format(node_type[0], node_type[1], node_name )
     return query;
+
+
+def find_all_nodes(label):
+    # TODO: Would like a reason for failure here
+    node_type = None  
+    if label ==  user[0]:
+        node_type = user
+    elif label == skill[0]:
+        node_type = skill
+    elif label == interest[0]:
+        node_type = interest
+    elif label == organization[0]:
+        node_type = organization
+    elif label == project[0]:
+        node_type = project
+    else:
+        errorMessage = "Incorrect label used when trying to find node type: {0}".format(label)
+        raise ValueError(errorMessage)
+    query = "MATCH (u: {0} ) RETURN u".format(label)
+    return query;
+
 
 # Create methods for nodes
 
@@ -164,9 +219,6 @@ def delete_associated_skill(user_name, skill_name):
                 DELETE v""".format(user[0], user[1], skill[0], skill[1], skill_rel[0], user_name, skill_name )
     return query
 
-
-
-
 def match_organization_distance_association(org1, org2):
     org1 = ' '.join(org1.lower().split())
     org2 = ' '.join(org2.lower().split())
@@ -174,7 +226,6 @@ def match_organization_distance_association(org1, org2):
     query = """MATCH (u1: {0} {{ {1}: '{2}' }}) - [] -> (u2: {0} {{ {1}: '{3}' }})
                 RETURN u1, u2""".format(organization[0], organization[1], org1, org2)
     return query
-
 
 def add_organization_distance_association(org1, org2, distance):
     org1 = ' '.join(org1.lower().split())
@@ -279,8 +330,8 @@ def remove_project_from_organization(organization_name, project_name):
 if __name__ == '__main__':
     #print(create_friendship('Jessica', 'Amanda'))
     #print(delete_friendship('Jessica','Amanda'))
-    
-    print(match_organization_distance_association('o2', 'o1'))
+    print(find_all_nodes('user'))
+   # print(match_organization_distance_association('o2', 'o1'))
    # print("New method")
     #print(delete_node("User", "Shane"))
     #print(create_node('user', [5,'Helena','Jacoba']))

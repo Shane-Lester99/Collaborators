@@ -127,10 +127,6 @@ class DbService:
             print('\tData associated with distance between {0} and {1} already present.\n\tInterest data rejected at ... {2}\n'.format(org1, org2, datetime.now()))
        
       
-
-
-
-
     def add_many_new_interest_nodes(self, dataframe):
         for row in dataframe.iterrows():
             index, data = row
@@ -273,7 +269,27 @@ class DbService:
             print('Mongo data not yet deleted')
         else:
             print('Data not deleted. Exiting.')
-        
+
+
+    # READS *******
+    def get_all_of_node_type(self, node_type):
+        query = n_h.find_all_nodes(node_type)
+        #print(query)
+        node_list = self._neo4j_graph.run(query)
+        node_list = node_list.data()
+        if not node_list:
+            print('No data found for {0} at ... {1}\n'.format(node_type, datetime.now()))
+            return 
+        print('Retrieving all data with label {0} at ... {1}\n\n'.format(node_type, datetime.now())) 
+        for node in node_list:
+            for all_data_nodes in node.values():
+                all_data_nodes_as_dict = dict(all_data_nodes)
+                print_string = "\t"
+                for (key, value) in all_data_nodes_as_dict.items():
+                    print_string = print_string + str(key) + ": " +  str(value) + '; '
+                print(print_string) 
+        print('\nAll data retrievd at ... {0}\n'.format(datetime.now()))
+
 if __name__ == '__main__':
     x = DbService()
 

@@ -3,9 +3,11 @@ from datetime import datetime
 from collections import OrderedDict
 import pandas as pd
 import yaml
+import os
 import sys
-from db_service import DbService
+sys.path.append(os.path.join(local.path(__file__).dirname, 'db_schema'))
 
+from db_schema.db_service import DbService
 class CollaboratorDotNet(cli.Application):
     PROGNAME = "Collaborator.Net"
     VERSION = "0.0"
@@ -159,10 +161,7 @@ class CollaboratorDotNet(cli.Application):
         print("social networking information. Please read the README.md document attached for details")
         print("on how to use the application.")
         print()
-    #@cli.switch(["--query-menu"])
-    #def list_queries(self):
-    #    """ List of available queries """
-    #    print("Here are all the available queries for collaborator.net")
+     
 
     @cli.switch(['a', '--get-all'], str)
     def get_all_of_node_type(self, node_type):
@@ -213,6 +212,14 @@ class CollaboratorDotNet(cli.Application):
 
         else:
             print('No information found about {0} with key {1}. at ... {2}'.format(label, key, datetime.now()))
+
+    @cli.switch(['-d', '--delete-all-data'])
+    def delete_all_data(self):
+        """
+        deletes all data in both databases. Warning provided before deletion.
+        """
+        self.connect_to_db()
+        self._db_service.delete_all_data()
 
     def main(self):
 

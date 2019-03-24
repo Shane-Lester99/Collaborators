@@ -160,4 +160,5 @@ class MongoDbSchema(object):
             print('Organization document not usable. Mongo schema error. Exiting.')
             sys.exit(1)
         def update_document(self, description):
-            self._description = str(description)
+           return description 
+            

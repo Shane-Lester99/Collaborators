@@ -5,13 +5,16 @@ from datetime import datetime
 import yaml
 import sys
 import os
-sys.path.append(local.path(__file__).dirname.up())
-from db_helper_methods import neo4j_helper as n_h
-from db_helper_methods import mongodb_helper as m_h
+#from config import db
+import neo4j_schema as n_h 
+import mongodb_schema as m_h
+
+
 
 class DbService:
 
-    _yaml_link = '../config/db.yaml'
+    _yaml_link =  os.path.join(local.path(__file__).dirname, '..', '..', 'config', 'db.yaml')
+ 
 
     _config = None
 
@@ -313,9 +316,22 @@ class DbService:
         else: 
             print('No table name to match label. Mongo Schema error. Please fix schema in code. Exiting')
             sys.exit(1)
-      
+
+
+    def update_specific_info(self, label, key):
+        if label in m_h.MongoDbSchema.all_table_names: 
+            query = m_h.MongoDbSchema.update_document(m_h.MongoDbSchema, label, key)
+            val_list = list(self._mongo_db[label].find(query))
+            if not val_list:
+                return None
+            return val_list
+            
+        else: 
+            print('No table name to match label. Mongo Schema error. Please fix schema in code. Exiting')
+            sys.exit(1)
 
 if __name__ == '__main__':
+   #rint(sys.path)
     x = DbService()
     x.delete_all_data()
 

@@ -5,9 +5,9 @@ import pandas as pd
 import yaml
 import os
 import sys
-sys.path.append(os.path.join(local.path(__file__).dirname, 'db_schema'))
+sys.path.append(os.path.join(local.path(__file__).dirname, 'db'))
 
-from db_schema.db_service import DbService
+from db.db_service import DbService
 class CollaboratorDotNet(cli.Application):
     PROGNAME = "Collaborator.Net"
     VERSION = "0.0"
@@ -29,7 +29,7 @@ class CollaboratorDotNet(cli.Application):
     } 
 
     _yaml_option = cli.SwitchAttr(
-        ['-y', '--yaml-option'], mandatory=False, default='load_all_data',
+        ['-y', '--yaml-file'], mandatory=False, default='load_all_data',
         help='In the yaml file specified at path from --input-many switch, can specify which attribue of yaml file you want to download. load_all_data is used by default. Must be used before the --input-many switch to work.'
     )
 
@@ -39,8 +39,6 @@ class CollaboratorDotNet(cli.Application):
         if not self._db_service:
             print('Connecting to databases at ... {0}\n'.format(datetime.now()))
             self._db_service = DbService()
-
-
 
     @cli.switch(['-m', '--input-many'], str)
     def input_lots_of_data(self, file_path_to_yaml):
@@ -56,15 +54,12 @@ class CollaboratorDotNet(cli.Application):
         for i in yaml_file[self._yaml_option]:
             self.input_data(i)
         
-
     # will input a file named file_name that is input data of file_type
    
-    @cli.switch(['-i', '--input'], str)
+    @cli.switch(['-o', '--input-one'], str)
     def input_data(self, file_path_and_type):
-        """ 
-        
+        """         
         Input data, enter a string of form file_type,file_path  
-        
         """
         self.connect_to_db()
         file_path, file_type = file_path_and_type.split(',')
@@ -102,7 +97,6 @@ class CollaboratorDotNet(cli.Application):
             # Skill associated with user switch
             print('Loading {0} data at  ... {1}\n\n'.format(self._valid_file_types[5].upper(), datetime.now()))
             self._db_service.add_many_new_user_nodes(input_data)
-     
 
     def read_data(self, file_path, file_type):
         data_to_load = pd.read_csv(file_path)
@@ -141,20 +135,25 @@ class CollaboratorDotNet(cli.Application):
             err_message = 'Invalid file input type "{0}", exiting'.format(file_type)
             raise TypeError(err_message)
         data_to_load = self.normalize_headers(pd.read_csv(file_path))
-        headers = list(data_to_load.columns)
-       # headers = list(pd.read_csv(file_path).columns)
+        headers = list(data_to_load.columns) 
         if list(file_structure[file_type].keys()) != headers:
             print("Failed to match valid proper csv data structure  at ... {0}".format(datetime.now()))
             err_message = 'Invalid file structure at "{0}", exiting'.format(file_path)
             raise TypeError(err_message)
 
-    #******************* write interface: *********************************
+    @cli.switch(['-d', '--delete-all-data'])
+    def delete_all_data(self):
+        """
+        deletes all data in both databases. Warning provided before deletion.
+        """
+        self.connect_to_db()
+        self._db_service.delete_all_data()
+
+    #******************* read interface: *********************************
     @cli.switch(["--about"])
     def about(self):
-        """ 
-        
+        """    
         A little bit of information about collaborator.net 
-        
         """
         print()
         print("Welcome to collaborator.net. A command line tool to store and query professional")
@@ -162,14 +161,12 @@ class CollaboratorDotNet(cli.Application):
         print("on how to use the application.")
         print()
      
-
-    @cli.switch(['a', '--get-all'], str)
+    @cli.switch(['-a', '--get-all'], str)
     def get_all_of_node_type(self, node_type):
         """ 
-
-        Flag to retrieve nodes of a particular type. Valid input types are interest, skill, project, user, and organization. 
+        Flag to retrieve nodes of a particular type. Valid input types are interest,
+        skill, project, user, and organization. 
         Output will be all nodes of that type and there data outputted to terminal.
-
         """
         self.connect_to_db()
         print('Searching for data of type {0} at ... {1}\n'.format(node_type, datetime.now()))
@@ -179,15 +176,12 @@ class CollaboratorDotNet(cli.Application):
         else:
             print('Node type {0} is not a valid type.\nExiting at {1}'.format(node_type, datetime.now()))
 
-
     @cli.switch(['-s', '--get-specific-information'], str)
     def get_specific_information(self, raw_info_string):
         """
-
         This switch will allow retrieval of specific information based on the key of a node type.
         The input options are: (user,some_user_id_integer), (project,some_project_str), 
         (organization,some_org, (skill,some_skill_str) , (interest,some_interest_str).
-        
         """
         self.connect_to_db()
         label, key = raw_info_string.split(',')
@@ -208,21 +202,29 @@ class CollaboratorDotNet(cli.Application):
                 for (key, value) in node.items():
                     if (key != '_id'):
                         print("\t" + key + ": " + str(value) + ";")
-            print()
-
+            print('\nInformation Retrieval finished at ... {0}\n'.format(datetime.now()))
         else:
             print('No information found about {0} with key {1}. at ... {2}'.format(label, key, datetime.now()))
 
-    @cli.switch(['-d', '--delete-all-data'])
-    def delete_all_data(self):
+    @cli.switch(['-r', '--rec-to-meet'], int)
+    def people_on_path_of(self, user_id):
         """
-        deletes all data in both databases. Warning provided before deletion.
+        Based off of network, recommends people you may have met or that you may want to meet.
+        It bases it off of similar interest or skills, and people who either work at the same
+        company or work at a company within a close distance (under 10 miles)
         """
         self.connect_to_db()
-        self._db_service.delete_all_data()
+        print('Looking for recommendations for user {0} at ... {1}'.format(user_id, datetime.now()))
+        #retrieve_recommendations
+        rec_list = list(self._db_service.retrieve_recommendations(user_id))
+        print('Fetch finished at ... {0}'.format(datetime.now()))
+        for rec in rec_list:
+            print(rec, type(rec))
+        
+        
 
     def main(self):
-
         pass
+
 if __name__=='__main__':
     CollaboratorDotNet.run()

@@ -5,10 +5,10 @@ from datetime import datetime
 import yaml
 import sys
 import os
+sys.path.append(os.path.join(local.path(__file__).dirname, 'db_schema'))
 #from config import db
-import neo4j_schema as n_h 
-import mongodb_schema as m_h
-
+from db_schema import neo4j_schema as n_h 
+from db_schema import mongodb_schema as m_h
 
 
 class DbService:
@@ -316,6 +316,15 @@ class DbService:
         else: 
             print('No table name to match label. Mongo Schema error. Please fix schema in code. Exiting')
             sys.exit(1)
+
+    def retrieve_recommendations(self, user_id):
+        print('Looking for user with id {0} at ... {1}'.format(user_id))
+        person = self.get_specific_info('user', user_id)
+        if not person:
+            return None
+        query = n_h.people_on_path_of(user_id)
+        rec = self._neo4j_graph.run(query)
+        return rec
 
 
     def update_specific_info(self, label, key):

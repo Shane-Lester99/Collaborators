@@ -149,6 +149,26 @@ class CollaboratorDotNet(cli.Application):
         self.connect_to_db()
         self._db_service.delete_all_data()
 
+    @cli.switch(['-u','--update-specific-entity' ], str)
+    def update_entity(self, raw_info_string):
+        """
+        Updates documents based on project, user, skill, interest, or organization.
+        Can store any type of information, but it cannot modify read only properties.
+        Read only properties are the ones that were read in on entity creation from the
+        dataset provided. Input is of form entity-type,key
+        """
+        self.connect_to_db()
+        label, key = raw_info_string.split(',')
+        if label not in ('user', 'project', 'skill', 'interest', 'organization'):
+            print('Label {0} not found. Exiting'.format(label))
+            sys.exit(1)
+        if label == 'user':
+            try:
+                key = int(key)
+            except ValueError as err:
+                raise err
+        self._db_service.update_specific_info(label, key)
+
     #******************* read interface: *********************************
     @cli.switch(["--about"])
     def about(self):
@@ -205,6 +225,16 @@ class CollaboratorDotNet(cli.Application):
             print('\nInformation Retrieval finished at ... {0}\n'.format(datetime.now()))
         else:
             print('No information found about {0} with key {1}. at ... {2}'.format(label, key, datetime.now()))
+
+    @cli.switch(['-t','--trusted-collegues'], int)
+    def trusted_collegues(self, user_id):
+        """
+        Based off of network, this shows people who are trusted collegues of your collegues.
+        These include people who have similar interests and have worked on the same projects
+        """
+        self.connect_to_db()
+      
+
 
     @cli.switch(['-r', '--rec-to-meet'], int)
     def people_on_path_of(self, user_id):

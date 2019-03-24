@@ -6,10 +6,11 @@ import yaml
 import sys
 import os
 sys.path.append(os.path.join(local.path(__file__).dirname, 'db_schema'))
+sys.path.append(local.path(__file__).dirname.up())
 #from config import db
 from db_schema import neo4j_schema as n_h 
 from db_schema import mongodb_schema as m_h
-
+from utility_functions import *
 
 class DbService:
 
@@ -286,6 +287,60 @@ class DbService:
         else:
             print('Data not deleted. Exiting.') 
 
+    def update_specific_info(self, label, key):
+        if label in m_h.MongoDbSchema.all_table_names: 
+            print('Searching for document to update at ... {0}'.format(datetime.now()))
+            query = m_h.MongoDbSchema.look_up(m_h.MongoDbSchema, label, key)
+            val_list = list(self._mongo_db[label].find(query))
+            if not val_list:
+                print('Document not found at ... {0}\nExiting'.format(datetime.now()))
+                sys.exit(0)
+            print('Document found at ... {0}.\nHere is the document currently.\n'.format(datetime.now()))
+            print(dict(val_list[0])) 
+            filter_values = ['key', 'table_name', '_description']
+            if label == 'user':
+                read_only_keys = get_props(m_h.MongoDbSchema.User, filter_values)
+            elif label == 'project': 
+                read_only_keys = get_props(m_h.MongoDbSchema.Project, filter_values)
+            elif label == 'skill': 
+                read_only_keys = get_props(m_h.MongoDbSchema.Skill, filter_values)
+            elif label == 'interest': 
+                read_only_keys = get_props(m_h.MongoDbSchema.Interest, filter_values) 
+            elif label == 'organization': 
+                read_only_keys = get_props(m_h.MongoDbSchema.Organization, filter_values)
+            else:
+                print('Label not found. Error. Exiting')
+                sys.exit(1)
+            read_only_keys = [k.replace('_', '') for k in read_only_keys]
+            print('Add key value pairs to document as needed.\n')
+            exit = False
+            doc_to_mod = dict(val_list[0])
+            while not exit:
+                key = input('\tPlease enter a key: ') 
+                print(read_only_keys, key)
+                if key in read_only_keys:
+                    print('\tThat is a reserved keyword. Key {0} cant be used'.format(key))
+                    continue
+                value = input('\tPlease enter a value: ')
+                ans = input('\tCommit change {0}: {1}? (Y/ N)? '.format(key, value))
+                while ans != 'Y' and ans != 'N':
+                    print('\tInvalid answer to (Y/N). please try again')
+                    ans = input('\tcommit change {0}: {1}? (Y/N)? '.format(key, value))
+                if ans == 'Y':
+                    doc_to_mod[key] = value
+                ans = input('Do you wish to continue (Y/N)? ')
+                while ans != 'Y' and ans != 'N':
+                    print('\tInvalid answer to (Y/N). please try again')
+                    ans = input('\tComtinue? (Y/N)? '.format(key,value))
+                if ans == 'N':
+                    exit = True
+            print(doc_to_mod)
+
+
+        else: 
+            print('No table name to match label. Mongo Schema error. Please fix schema in code. Exiting')
+            sys.exit(1)
+
     # READS *******
     def get_all_of_node_type(self, node_type):
         query = n_h.find_all_nodes(node_type)
@@ -323,17 +378,6 @@ class DbService:
         return rec
 
 
-    def update_specific_info(self, label, key):
-        if label in m_h.MongoDbSchema.all_table_names: 
-            query = m_h.MongoDbSchema.update_document(m_h.MongoDbSchema, label, key)
-            val_list = list(self._mongo_db[label].find(query))
-            if not val_list:
-                return None
-            return val_list
-            
-        else: 
-            print('No table name to match label. Mongo Schema error. Please fix schema in code. Exiting')
-            sys.exit(1)
 
 if __name__ == '__main__':
    #rint(sys.path)

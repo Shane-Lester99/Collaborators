@@ -59,15 +59,15 @@ class MongoDbSchema(object):
         def update_document(self, description):
             self._description = str(description)
     class Skill(object):
-        _skill_name = None
+        _skill = None
         _description = None
         table_name = 'skill'
         key = 'skill'
         def __init__(self, name, description):
-            self._skill_name = name
+            self._skill = name
             self._description = description
         def _make_usable(self):
-            if not self._skill_name:
+            if not self._skill:
                 return False
             if not self._description:
                 self._description = 'Fill in information about this skill'
@@ -75,7 +75,7 @@ class MongoDbSchema(object):
         def create_new_skill_doc(self):
             if self._make_usable():
                 skill_doc = {
-                    'skill': self._skill_name.lower(),
+                    'skill': self._skill.lower(),
                     'description': self._description
                 }
                 return skill_doc
@@ -84,15 +84,15 @@ class MongoDbSchema(object):
         def update_document(self, description):
             self._description = str(description)
     class Interest(object):
-        _interest_name = None
+        _interest = None
         _description = None
         table_name = 'interest'
         key = 'interest'
         def __init__(self, name, description):
-            self._interest_name = name
+            self._interest = name
             self._description = description
         def _make_usable(self):
-            if not self._interest_name:
+            if not self._interest:
                 return False
             if not self._description:
                 self._description = 'Fill in information about this interest'
@@ -100,7 +100,7 @@ class MongoDbSchema(object):
         def create_new_interest_doc(self):
             if self._make_usable():
                 interest_doc = {
-                    'interest': self._interest_name.lower(),
+                    'interest': self._interest.lower(),
                     'description': self._description
                 }
                 return interest_doc
@@ -109,15 +109,15 @@ class MongoDbSchema(object):
         def update_document(self, description):
             self._description = str(description)
     class Project(object):
-        _project_name = None
+        _project = None
         _description = None
         table_name = 'project'
         key = 'project'
         def __init__(self, name, description):
-            self._project_name = name
+            self._project = name
             self._description = description
         def _make_usable(self):
-            if not self._project_name:
+            if not self._project:
                 return False
             if not self._description:
                 self._description = 'Fill in information about this project'
@@ -125,7 +125,7 @@ class MongoDbSchema(object):
         def create_new_project_doc(self):
             if self._make_usable():
                 project_doc = {
-                    'project': self._project_name.lower(),
+                    'project': self._project.lower(),
                     'description': self._description
                 }
                 return project_doc
@@ -134,17 +134,17 @@ class MongoDbSchema(object):
         def update_document(self, description):
             self._description = str(description)
     class Organization(object):
-        _organization_name = None
+        _organization = None
         _sector = None
         _description = None
         table_name = 'organization'
         key = 'organization'
         def __init__(self, name, sector, description):
-            self._organization_name = name
+            self._organization = name
             self._sector = sector
             self._description = description
         def _make_usable(self): 
-            if not all([self._organization_name, self._sector]): 
+            if not all([self._organization, self._sector]): 
                 return False
             if not self._description:
                 self._description = 'Fill in information about this organization'
@@ -152,7 +152,7 @@ class MongoDbSchema(object):
         def create_new_organization_doc(self):
             if self._make_usable():
                 organization_doc = {
-                    'organization': self._organization_name.lower(),
+                    'organization': self._organization.lower(),
                     'sector': self._sector,
                     'description': self._description
                 }

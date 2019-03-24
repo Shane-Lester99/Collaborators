@@ -318,10 +318,6 @@ class DbService:
             sys.exit(1)
 
     def retrieve_recommendations(self, user_id):
-        print('Looking for user with id {0} at ... {1}'.format(user_id))
-        person = self.get_specific_info('user', user_id)
-        if not person:
-            return None
         query = n_h.people_on_path_of(user_id)
         rec = self._neo4j_graph.run(query)
         return rec

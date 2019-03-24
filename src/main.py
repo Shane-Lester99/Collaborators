@@ -219,9 +219,29 @@ class CollaboratorDotNet(cli.Application):
         rec_list = list(self._db_service.retrieve_recommendations(user_id))
         print('Fetch finished at ... {0}'.format(datetime.now()))
         for rec in rec_list:
-            print(rec, type(rec))
-        
-        
+            items = list(rec) 
+            for i in range(0, len(items), 1): 
+                if items[i]: 
+                    items[i] = dict(items[i])
+                else: 
+                    items[i] = None
+            main_user, interest_skill, other_user, organization_of_main, dist, organization_of_other  = items
+           # print(main_user['first_name'], interest_skill, other_user, organization_of_main, dist, organization_of_other)
+            print()
+            print('\tWe recommend user {0} with id {1} to meet user {2} with id {3}'
+                    .format(main_user['first_name'] + ' ' + main_user['last_name'], main_user['user_id'],
+                            other_user['first_name'] + ' ' + other_user['last_name'], other_user['user_id']))
+            s_i_key = ('interest', 'interest_name')
+            if 'skill_name' in interest_skill:
+                s_i_key = ('skill', 'skill_name')
+            print("\tThis is based on shared {0} {1}".format(s_i_key[0], interest_skill[s_i_key[1]]))
+            if dist:
+                print("\tThis is based on organization {0} and {1} being only {2} miles apart"
+                        .format(organization_of_main['organization_name'], organization_of_other['organization_name'], dist['distance']))
+            else:
+                print("\tThis is based on both people working at {0}".format(organization_of_main['organization_name']))
+            print()
+        print('Recommendation finished at ... {0}'.format(datetime.now()))
 
     def main(self):
         pass

@@ -52,7 +52,7 @@ def people_on_path_of(user_id):
     """.format(user_id)
     return query
     
-def trusted_colleagues_of_colleagues(user_id, is_skill):
+def trusted_collegues_of_collegues(user_id, is_skill):
     if (is_skill):
         query = """
             MATCH (main_user: user {{ user_id: {0} }})-[level : is_skilled_at] -> (skills)
@@ -71,6 +71,7 @@ def trusted_colleagues_of_colleagues(user_id, is_skill):
             WHERE NOT other_users.user_id = {0}
             return main_user, other_users, role, projects, level, interests
         """.format(user_id)
+    return query
 
 # Getter methods for nodes
 def find_node(label, node_name):
@@ -330,7 +331,8 @@ def remove_project_from_organization(organization_name, project_name):
 if __name__ == '__main__':
     #print(create_friendship('Jessica', 'Amanda'))
     #print(delete_friendship('Jessica','Amanda'))
-    print(find_all_nodes('user'))
+    #print(find_all_nodes('user'))
+    print(get_trusted_collegues_of_collegues(1, True))
    # print(match_organization_distance_association('o2', 'o1'))
    # print("New method")
     #print(delete_node("User", "Shane"))

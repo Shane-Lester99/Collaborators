@@ -47,8 +47,6 @@ class DbService:
             sys.exit(1)
         print('Now connected to MongoDb at ... {0}\n'.format(datetime.now()))
         
-
-
     def _load_config_file(self):
         with open(self._yaml_link) as raw_config_file:
             try:
@@ -83,7 +81,6 @@ class DbService:
                 #self._config['mongodb']['database_name']
                 ) 
         self._mongo_client = MongoClient(uri)
-
 
     def _make_list_correct_length(self, wanted_length, row_items):
         if wanted_length < len(row_items):
@@ -120,8 +117,7 @@ class DbService:
             print('\tDistance of {0} saved between organizations {1} and {2}  at ... {3}\n'.format(distance, org1, org2, datetime.now()))
         else:
             print('\tData associated with distance between {0} and {1} already present.\n\tInterest data rejected at ... {2}\n'.format(org1, org2, datetime.now()))
-       
-      
+             
     def add_many_new_interest_nodes(self, dataframe):
         for row in dataframe.iterrows():
             index, data = row
@@ -140,7 +136,6 @@ class DbService:
             if len(exist_interest_with_name) == 0:
                 query = n_h.add_associated_interest(user_id, interest_name, interest_level)
                 self._neo4j_graph.run(query)
-
                 if not self.get_specific_info('interest', interest_name):
                     print('\tDocument not found for interest {0}. Creating document at ... {1}'.format(interest_name, datetime.now()))
                     mongo_interest = m_h.MongoDbSchema.Interest(interest_name, description)
@@ -380,10 +375,12 @@ class DbService:
         rec = self._neo4j_graph.run(query)
         return rec
 
-
+    def get_trusted_c_of_c(self, user_id, is_skill):
+        query = n_h.trusted_collegues_of_collegues(user_id, is_skill) 
+        rec = self._neo4j_graph.run(query)
+        return rec
 
 if __name__ == '__main__':
    #rint(sys.path)
     x = DbService()
     x.delete_all_data()
-

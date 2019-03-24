@@ -8,8 +8,8 @@ import sys
 sys.path.append(os.path.join(local.path(__file__).dirname, 'db'))
 
 from db.db_service import DbService
-class CollaboratorDotNet(cli.Application):
-    PROGNAME = "Collaborator.Net"
+class Collaborator(cli.Application):
+    PROGNAME = "Collaborator"
     VERSION = "0.0"
     DESCRIPTION = "This is a command line tool to store and query professional social networking information."
     # ********************************* read interface ********************************************
@@ -173,10 +173,10 @@ class CollaboratorDotNet(cli.Application):
     @cli.switch(["--about"])
     def about(self):
         """    
-        A little bit of information about collaborator.net 
+        A little bit of information about collaborator 
         """
         print()
-        print("Welcome to collaborator.net. A command line tool to store and query professional")
+        print("Welcome to collaborator. A command line tool to store and query professional")
         print("social networking information. Please read the README.md document attached for details")
         print("on how to use the application.")
         print()
@@ -213,7 +213,7 @@ class CollaboratorDotNet(cli.Application):
                 key = int(key)
             except ValueError as err:
                 raise err
-        print('Retrieving information about {0} with key {1} at ... {2}'.format(label, key, datetime.now()))
+        print('Retrieving information about {0} with key {1} at ... {2}\n'.format(label, key, datetime.now()))
         info_list = self._db_service.get_specific_info(label, key)
         if info_list:
             print('Information found about {0} with key {1} at ... {2}\n'.format(label, key, datetime.now()))
@@ -233,7 +233,43 @@ class CollaboratorDotNet(cli.Application):
         These include people who have similar interests and have worked on the same projects
         """
         self.connect_to_db()
-      
+        raw_input_string = input('Please enter if you would like to match by skill or interest (s/i): ')
+        while raw_input_string not in ('i', 's'):
+            raw_input_string = input('Incorrect input. Please enter if you would like to match by skill or interest (s/i) : ')
+        print()
+        is_skill = False
+        if raw_input_string == 's':
+            is_skill = True
+        print('Fetching trusted collegues of collegues at ... {0}'.format(datetime.now()))
+        rec = list(self._db_service.get_trusted_c_of_c(user_id, is_skill))
+        if not rec:
+            print('Fetch retrieved no results at ... {0}.\nExiting'.format(datetime.now()))
+            sys.exit(0)
+        
+        rec = [dict(i) for i in rec] 
+        print('Fetch retrieved at ... {0}\n'.format(datetime.now()))
+        for result in rec:
+            #main_user, other_user, role, project, level, interest = result
+            main_user = dict(result['main_user'])
+            other_user = dict(result['other_users'])
+            role = dict(result['role'])
+            project = dict(result['projects'])
+            level = dict(result['level'])
+            i_or_s = None
+            if is_skill:
+                i_or_s = dict(result['skills'])
+            else:
+                i_or_s = dict(result['interests'])
+            print('\tUser {0} with id {1} is recommended to trust {2} with id {3}'
+                    .format(' '.join([main_user['first_name'], main_user['last_name']]),
+                        main_user['user_id'],
+                        ' '.join([other_user['first_name'], other_user['last_name']]),
+                        other_user['user_id']))
+            print('\tThis is based on both working on project {0} and having similar',
+                  '{1} {2}'.format(project['project_name'], 'skill' if is_skill else 'interest',
+                  i_or_s.get('skill_name') if is_skill else i_or_s.get('interest_name')))
+            print()
+        print('Retrieved and outputted at ... {0}.\nExiting'.format(datetime.now()))
 
 
     @cli.switch(['-r', '--rec-to-meet'], int)
@@ -255,8 +291,7 @@ class CollaboratorDotNet(cli.Application):
                     items[i] = dict(items[i])
                 else: 
                     items[i] = None
-            main_user, interest_skill, other_user, organization_of_main, dist, organization_of_other  = items
-           # print(main_user['first_name'], interest_skill, other_user, organization_of_main, dist, organization_of_other)
+            main_user, interest_skill, other_user, organization_of_main, dist, organization_of_other  = items 
             print()
             if not dist:
                 if not organization_of_main['organization_name'] == organization_of_other['organization_name']:
@@ -281,4 +316,4 @@ class CollaboratorDotNet(cli.Application):
         pass
 
 if __name__=='__main__':
-    CollaboratorDotNet.run()
+    Collaborator.run()

@@ -228,6 +228,10 @@ class CollaboratorDotNet(cli.Application):
             main_user, interest_skill, other_user, organization_of_main, dist, organization_of_other  = items
            # print(main_user['first_name'], interest_skill, other_user, organization_of_main, dist, organization_of_other)
             print()
+            if not dist:
+                if not organization_of_main['organization_name'] == organization_of_other['organization_name']:
+                    continue
+                    
             print('\tWe recommend user {0} with id {1} to meet user {2} with id {3}'
                     .format(main_user['first_name'] + ' ' + main_user['last_name'], main_user['user_id'],
                             other_user['first_name'] + ' ' + other_user['last_name'], other_user['user_id']))

@@ -295,48 +295,51 @@ class DbService:
             if not val_list:
                 print('Document not found at ... {0}\nExiting'.format(datetime.now()))
                 sys.exit(0)
-            print('Document found at ... {0}.\nHere is the document currently.\n'.format(datetime.now()))
-            print(dict(val_list[0])) 
-            filter_values = ['key', 'table_name', '_description']
+            print('Document found at ... {0}.\nHere is the document currently.\n'.format(datetime.now())) 
+            doc_to_mod = dict(val_list[0])
+            print(doc_to_mod)
+            for (k, v) in doc_to_mod.items():
+                print('Key: {0}, Value: {1}'.format(k, v))
+            filter_values = ['table_name', '_description']
+            query_key = None
+            read_only_keys = None
             if label == 'user':
-                read_only_keys = get_props(m_h.MongoDbSchema.User, filter_values)
+                query_key, read_only_keys = get_props(m_h.MongoDbSchema.User, filter_values)
             elif label == 'project': 
-                read_only_keys = get_props(m_h.MongoDbSchema.Project, filter_values)
+                query_key, read_only_keys = get_props(m_h.MongoDbSchema.Project, filter_values)
             elif label == 'skill': 
-                read_only_keys = get_props(m_h.MongoDbSchema.Skill, filter_values)
+                query_key, read_only_keys = get_props(m_h.MongoDbSchema.Skill, filter_values)
             elif label == 'interest': 
-                read_only_keys = get_props(m_h.MongoDbSchema.Interest, filter_values) 
+                query_key, read_only_keys = get_props(m_h.MongoDbSchema.Interest, filter_values) 
             elif label == 'organization': 
-                read_only_keys = get_props(m_h.MongoDbSchema.Organization, filter_values)
+                query_key, read_only_keys = get_props(m_h.MongoDbSchema.Organization, filter_values)
             else:
                 print('Label not found. Error. Exiting')
                 sys.exit(1)
             read_only_keys = [k.replace('_', '') for k in read_only_keys]
             print('Add key value pairs to document as needed.\n')
-            exit = False
-            doc_to_mod = dict(val_list[0])
+            exit = False 
+            changes = {}
             while not exit:
-                key = input('\tPlease enter a key: ') 
-                print(read_only_keys, key)
-                if key in read_only_keys:
-                    print('\tThat is a reserved keyword. Key {0} cant be used'.format(key))
+                new_key = input('\tPlease enter a key: ')  
+                if new_key in read_only_keys:
+                    print('\tThat is a reserved keyword. Key {0} cant be used'.format(new_key))
                     continue
-                value = input('\tPlease enter a value: ')
-                ans = input('\tCommit change {0}: {1}? (Y/ N)? '.format(key, value))
+                new_value = input('\tPlease enter a value: ')
+                ans = input('\tCommit change {0}: {1}? (Y/ N)? '.format(new_key, new_value))
                 while ans != 'Y' and ans != 'N':
                     print('\tInvalid answer to (Y/N). please try again')
-                    ans = input('\tcommit change {0}: {1}? (Y/N)? '.format(key, value))
+                    ans = input('\tcommit change {0}: {1}? (Y/N)? '.format(new_key, new_value))
                 if ans == 'Y':
-                    doc_to_mod[key] = value
+                    changes[new_key] = new_value
                 ans = input('Do you wish to continue (Y/N)? ')
                 while ans != 'Y' and ans != 'N':
                     print('\tInvalid answer to (Y/N). please try again')
-                    ans = input('\tComtinue? (Y/N)? '.format(key,value))
+                    ans = input('\tComtinue? (Y/N)? '.format(new_key,new_value))
                 if ans == 'N':
                     exit = True
-            print(doc_to_mod)
-
-
+            x = self._mongo_db[label].update_one( { query_key : key } , { '$set': changes })
+            print(x.matched_count, x.modified_count, label, key, x.raw_result)
         else: 
             print('No table name to match label. Mongo Schema error. Please fix schema in code. Exiting')
             sys.exit(1)

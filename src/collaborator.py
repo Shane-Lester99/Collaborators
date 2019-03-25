@@ -244,8 +244,7 @@ class Collaborator(cli.Application):
         rec = list(self._db_service.get_trusted_c_of_c(user_id, is_skill))
         if not rec:
             print('Fetch retrieved no results at ... {0}.\nExiting'.format(datetime.now()))
-            sys.exit(0)
-        
+            sys.exit(0)        
         rec = [dict(i) for i in rec] 
         print('Fetch retrieved at ... {0}\n'.format(datetime.now()))
         for result in rec:
@@ -271,7 +270,6 @@ class Collaborator(cli.Application):
             print()
         print('Retrieved and outputted at ... {0}.\nExiting'.format(datetime.now()))
 
-
     @cli.switch(['-r', '--rec-to-meet'], int)
     def people_on_path_of(self, user_id):
         """
@@ -284,6 +282,8 @@ class Collaborator(cli.Application):
         #retrieve_recommendations
         rec_list = list(self._db_service.retrieve_recommendations(user_id))
         print('Fetch finished at ... {0}'.format(datetime.now()))
+        print('Sorting recommendation at .. {0}'.format(datetime.now()))
+        sorted_rec_dict = OrderedDict()
         for rec in rec_list:
             items = list(rec) 
             for i in range(0, len(items), 1): 
@@ -291,24 +291,47 @@ class Collaborator(cli.Application):
                     items[i] = dict(items[i])
                 else: 
                     items[i] = None
-            main_user, interest_skill, other_user, organization_of_main, dist, organization_of_other  = items 
-            print()
+            main_user, interest_skill, other_user, organization_of_main, dist, organization_of_other, i_lvl_1, i_lvl_2  = items
+            main_user_info = None
+            if not sorted_rec_dict.get('main_user'):
+                 main_user_info = (main_user['first_name'] + ' ' + main_user['last_name'], main_user['user_id'])
             if not dist:
                 if not organization_of_main['organization_name'] == organization_of_other['organization_name']:
                     continue
-                    
+            skill_or_interest_prop = None 
+            if i_lvl_1.get('skill_level'):
+                skill_or_interest_prop = 'skill_level'
+            else:
+                skill_or_interest_prop = 'interest_level'
+            if sorted_rec_dict.get(other_user['user_id']):
+                sorted_rec_dict[other_user['user_id']][0] += i_lvl_1[skill_or_interest_prop] * i_lvl_2[skill_or_interest_prop]
+                sorted_rec_dict[other_user['user_id']][5].append(interest_skill[skill_or_interest_prop.replace('level', 'name')])
+            else:
+                sorted_rec_dict[other_user['user_id']] = [
+                                                      i_lvl_1[skill_or_interest_prop] * i_lvl_2[skill_or_interest_prop],
+                                                      (other_user['first_name'] + ' ' + other_user['last_name'], other_user['user_id']), 
+                                                      organization_of_main['organization_name'],
+                                                      organization_of_other['organization_name'],
+                                                      dist,
+                                                      [interest_skill[skill_or_interest_prop.replace('level', 'name')]]
+                                                      ]
+
+        sorted_rec_dict = OrderedDict(sorted(sorted_rec_dict.items(), key= lambda x: x[1][0], reverse=True))   
+        print('Finished sorting at ... {0}\n'.format(datetime.now()))
+        print('Displaying results at ... {0}\n'.format(datetime.now()))
+        for final_rec in sorted_rec_dict.values():
             print('\tWe recommend user {0} with id {1} to meet user {2} with id {3}'
-                    .format(main_user['first_name'] + ' ' + main_user['last_name'], main_user['user_id'],
-                            other_user['first_name'] + ' ' + other_user['last_name'], other_user['user_id']))
+                    .format(main_user_info[0], main_user_info[1],
+                            final_rec[1][0], final_rec[1][1]))
             s_i_key = ('interest', 'interest_name')
             if 'skill_name' in interest_skill:
                 s_i_key = ('skill', 'skill_name')
-            print("\tThis is based on shared {0} {1}".format(s_i_key[0], interest_skill[s_i_key[1]]))
-            if dist:
+            print("\tThis is based on shared interest or skills {0} with collective weight {1}".format(', '.join(final_rec[5]), final_rec[0])) 
+            if final_rec[4]:
                 print("\tThis is based on organization {0} and {1} being only {2} miles apart"
-                        .format(organization_of_main['organization_name'], organization_of_other['organization_name'], dist['distance']))
+                        .format(final_rec[2], final_rec[3], final_rec[4]['distance']))
             else:
-                print("\tThis is based on both people working at {0}".format(organization_of_main['organization_name']))
+                print("\tThis is based on both people working at {0}".format(final_rec[2]))
             print()
         print('Recommendation finished at ... {0}'.format(datetime.now()))
 

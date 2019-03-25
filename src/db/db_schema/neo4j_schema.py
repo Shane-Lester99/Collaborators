@@ -41,14 +41,14 @@ def valid_org_type(org_type):
 
 def people_on_path_of(user_id):
     query = """
-        MATCH (main_user : user {{ user_id : {0} }})-[i_lvl: is_interested_in | is_skilled_at] -> (thang)
+        MATCH (main_user : user {{ user_id : {0} }})-[i_lvl_1: is_interested_in | is_skilled_at] -> (thang)
         MATCH (main_user) - [:in_sector] -> (main_org: organization)
-        MATCH (other_users: user) - [] -> (thang)
+        MATCH (other_users: user) - [i_lvl_2: is_interested_in | is_skilled_at ] -> (thang)
         WHERE NOT other_users.user_id = {0}
         MATCH (other_users) - [:in_sector] -> (other_org: organization)
         OPTIONAL MATCH (other_org) - [dist :in_distance] - (main_org)
         WHERE other_org = main_org or dist.distance <= 10
-        RETURN DISTINCT main_user, thang, other_users, main_org, dist, other_org
+        RETURN main_user, thang, other_users, main_org, dist, other_org, i_lvl_1, i_lvl_2
     """.format(user_id)
     return query
     

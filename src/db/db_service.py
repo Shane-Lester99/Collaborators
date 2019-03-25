@@ -371,7 +371,7 @@ class DbService:
             sys.exit(1)
 
     def retrieve_recommendations(self, user_id):
-        query = n_h.people_on_path_of(user_id)
+        query = n_h.people_on_path_of(user_id) 
         rec = self._neo4j_graph.run(query)
         return rec
 

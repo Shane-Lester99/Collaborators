@@ -10,7 +10,7 @@ sys.path.append(os.path.join(local.path(__file__).dirname, 'db'))
 from db.db_service import DbService
 class Collaborator(cli.Application):
     PROGNAME = "Collaborator"
-    VERSION = "0.0"
+    VERSION = "1.0"
     DESCRIPTION = "This is a command line tool to store and query professional social networking information."
     # ********************************* read interface ********************************************
 

@@ -7,25 +7,18 @@ import sys
 import os
 from plumbum import local
 
-# TODO: Connect to neo4j
-# TODO: Add some sort of statuses and return values for each query to give feedback of how the query went
-# TODO: Seperate schema from query functions
-
-#from py2neo import Graph
-
 # constants for entity types
 user = ("user", "user_id", "first_name", "last_name")
-# TODO: VERY IMPORTANT: need to only allow three organizations (G, C, U)
 organization = ("organization", "organization_name")
 project = ("project", "project_name")
 skill = ("skill", "skill_name")
 interest = ("interest", "interest_name")
 
 # constants for labels:
-friendship_rel = ("is_friends_with", "added_on")
+friendship_rel = ("is_friends_with", "added_on") # not implemented
 skill_rel = ("is_skilled_at","skill_level")
 interest_rel = ("is_interested_in","interest_level")
-project_rel = ("works_on", "role")
+project_rel = ("works_on", "time_created")
 organization_rel = ("in_sector", "sector")
 organization_to_organization_rel = ("in_distance", "distance")
 # not implemented
@@ -281,12 +274,11 @@ def delete_associated_interest(user_name, interest_name):
     return query
 
 
-def add_to_project(user_id, project_name, role):  
-    project_name = ' '.join(project_name.lower().split()) 
-    role = ' '.join(role.lower().split())    
+def add_to_project(user_id, project_name, date):  
+    project_name = ' '.join(project_name.lower().split())  
     query = """MATCH (u1: {0} {{ {1} : {4} }}), (u2: {2}  {{ {3} : '{5}' }})
                 MERGE(u1) - [s : {6} {{ {7} : '{8}' }}] -> (u2)
-                RETURN u1, s,  u2""".format(user[0], user[1], project[0], project[1], user_id, project_name, project_rel[0], project_rel[1], role)
+                RETURN u1, s,  u2""".format(user[0], user[1], project[0], project[1], user_id, project_name, project_rel[0], project_rel[1], date)
     return query
 
 

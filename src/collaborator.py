@@ -14,16 +14,16 @@ class Collaborator(cli.Application):
     DESCRIPTION = "This is a command line tool to store and query professional social networking information."
     # ********************************* read interface ********************************************
 
-    # Types of acceptable files at command line
+    # Types of acceptable files at command line (friend not implemented)
     _valid_file_types = ('skill', 'project', 'organization', 'interest', 'distance', 'user', 'friend')
     # Structure of csv columns 
     _valid_file_structures = {
-            _valid_file_types[0] : OrderedDict({'userid': int, 'skill': str, 'skilllevel': int, 'description': str}),
-            _valid_file_types[1] : OrderedDict({'userid': int, 'project': str, 'role' : str, 'description': str}),
-            _valid_file_types[2] : OrderedDict({'userid': int, 'organization': str, 'organizationtype': str, 'description': str}),
-            _valid_file_types[3] : OrderedDict({'userid': int, 'interest': str, 'interestlevel': int, 'description':str}),
+            _valid_file_types[0] : OrderedDict({'userid': int, 'skill': str, 'skilllevel': int}),
+            _valid_file_types[1] : OrderedDict({'userid': int, 'project': str}),
+            _valid_file_types[2] : OrderedDict({'userid': int, 'organization': str, 'organizationtype': str}),
+            _valid_file_types[3] : OrderedDict({'userid': int, 'interest': str, 'interestlevel': int}),
             _valid_file_types[4] : OrderedDict({"organization1": str, "organization2": str, "distance": int}),
-            _valid_file_types[5] : OrderedDict({'userid': int, 'firstname': str, 'lastname': str, 'description': str}),
+            _valid_file_types[5] : OrderedDict({'userid': int, 'firstname': str, 'lastname': str}),
             # Not implemented
             _valid_file_types[6] : OrderedDict({'userid1': int, 'userid2':int})
     } 
@@ -49,10 +49,10 @@ class Collaborator(cli.Application):
             try:
                 yaml_file  = yaml.load(raw_config_file, yaml.FullLoader)
             except yaml.YAMLError as err:
-                raise err
-        print(self._yaml_option)
+                raise err 
         for i in yaml_file[self._yaml_option]:
             self.input_data(i)
+        print('All data loaded at ... {0}'.format(datetime.now()))
         
     # will input a file named file_name that is input data of file_type
    
@@ -70,7 +70,7 @@ class Collaborator(cli.Application):
         self.is_csv(file_path)
         self.is_valid_file_type(file_type, self._valid_file_types, self._valid_file_structures, file_path)
         print('Input validated at ... {0}\n'.format(datetime.now()))
-        print('Attempting to read data from {0} at ... {1}'.format(file_path, datetime.now())) 
+        print('Attempting to read data from {0} at ... {1}'.format(file_path, datetime.now()))
         input_data = self.read_data(file_path, file_type)
         print('Data read and cleaned at ... {0}\n'.format(datetime.now()))
         if file_type == self._valid_file_types[0]:
@@ -135,8 +135,8 @@ class Collaborator(cli.Application):
             err_message = 'Invalid file input type "{0}", exiting'.format(file_type)
             raise TypeError(err_message)
         data_to_load = self.normalize_headers(pd.read_csv(file_path))
-        headers = list(data_to_load.columns) 
-        if list(file_structure[file_type].keys()) != headers:
+        headers = list(data_to_load.columns)
+        if list(file_structure[file_type].keys()) != headers: 
             print("Failed to match valid proper csv data structure  at ... {0}".format(datetime.now()))
             err_message = 'Invalid file structure at "{0}", exiting'.format(file_path)
             raise TypeError(err_message)

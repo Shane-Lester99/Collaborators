@@ -42,7 +42,7 @@ class MongoDbSchema(object):
         def _make_usable(self):
             if not all(self._first_name, self._last_name, self._user_id):
                 return False
-            if not self._description():
+            if not self._description:
                 self._description = 'Fill in text here describing yourself'
             return True
         def create_new_user_doc(self):

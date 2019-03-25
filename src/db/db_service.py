@@ -123,7 +123,7 @@ class DbService:
             index, data = row
             row_items = data.tolist()
             row_items = self._make_list_correct_length(4, row_items)
-            self._add_new_interest_node('interest', row_items[0], row_items[1], row_items[2], row_items[3])
+            self._add_new_interest_node('interest', row_items[0], row_items[1], row_items[2], None)
 
     def _add_new_interest_node(self, label, user_id, interest_name, interest_level, description):
         query = n_h.find_node('user', user_id)
@@ -154,7 +154,7 @@ class DbService:
             index, data = row
             row_items = data.tolist()
             row_items = self._make_list_correct_length(4, row_items)
-            self._add_new_skill_node('skill', row_items[0], row_items[1], row_items[2], row_items[3])
+            self._add_new_skill_node('skill', row_items[0], row_items[1], row_items[2], None)
 
     def _add_new_skill_node(self, label, user_id, skill_name, skill_level, description):
         query = n_h.find_node('user', user_id)
@@ -183,7 +183,7 @@ class DbService:
             index, data = row
             row_items = data.tolist()
             row_items = self._make_list_correct_length(4, row_items)
-            self._add_new_organization_node('organization', row_items[0], row_items[1], row_items[2], row_items[3])
+            self._add_new_organization_node('organization', row_items[0], row_items[1], row_items[2], None)
 
     def _add_new_organization_node(self, label, user_id, organization_name, organization_type, description):
         if not n_h.valid_org_type(organization_type):
@@ -208,6 +208,8 @@ class DbService:
                 else:
                     pass
                 print('\tData saved for organization {0} at ... {1}\n'.format(organization_name, datetime.now()))
+            else:
+                print('\tData associated with organization {0} already present.\n\tOrganization data rejected at ... {1}\n'.format(organization_name, datetime.now()))
         else:
             print('\tUser associated with id: {0} does not exist.\n\tOrganization data rejected at ... {1}\n'.format(user_id, datetime.now()))
 
@@ -217,12 +219,9 @@ class DbService:
             index, data = row
             row_items = data.tolist()
             row_items = self._make_list_correct_length(4, row_items)
-            self._add_new_project_node('project', row_items[0], row_items[1], row_items[2], row_items[3])
+            self._add_new_project_node('project', row_items[0], row_items[1], datetime.now(), None)
 
-    def _add_new_project_node(self, label, user_id, project_name, role, description): 
-        if not role or not description:
-            role = 'unknown'
-            description = None
+    def _add_new_project_node(self, label, user_id, project_name, time_created, description): 
         query = n_h.find_node('user', user_id)
         exist_nodes_with_id = self._neo4j_graph.run(query)
         if exist_nodes_with_id.data():
@@ -231,7 +230,7 @@ class DbService:
             query = n_h.match_project_association(user_id, project_name)  
             exist_project_with_name = self._neo4j_graph.run(query).data()
             if len(exist_project_with_name) == 0:
-                query = n_h.add_to_project(user_id, project_name, role)
+                query = n_h.add_to_project(user_id, project_name, time_created)
                 self._neo4j_graph.run(query)
 
                 if not self.get_specific_info('project', project_name):
@@ -252,7 +251,7 @@ class DbService:
         for row in dataframe.iterrows():
             index, data = row
             row_items = data.tolist()
-            self._add_new_user_node('user', row_items[0], row_items[1], row_items[2], row_items[3])
+            self._add_new_user_node('user', row_items[0], row_items[1], row_items[2], None)
 
     def _add_new_user_node(self, label, user_id, first_name, last_name, description):
         query = n_h.find_node(label, user_id) 
@@ -290,11 +289,10 @@ class DbService:
             if not val_list:
                 print('Document not found at ... {0}\nExiting'.format(datetime.now()))
                 sys.exit(0)
-            print('Document found at ... {0}.\nHere is the document currently.\n'.format(datetime.now())) 
-            doc_to_mod = dict(val_list[0])
-            print(doc_to_mod)
+            print('Document found at ... {0}.\n\n\tHere is the document currently.\n'.format(datetime.now())) 
+            doc_to_mod = dict(val_list[0]) 
             for (k, v) in doc_to_mod.items():
-                print('Key: {0}, Value: {1}'.format(k, v))
+                print('\tKey: {0}, Value: {1}'.format(k, v))
             filter_values = ['table_name', '_description']
             query_key = None
             read_only_keys = None
@@ -312,7 +310,7 @@ class DbService:
                 print('Label not found. Error. Exiting')
                 sys.exit(1)
             read_only_keys = [k.replace('_', '') for k in read_only_keys]
-            print('Add key value pairs to document as needed.\n')
+            print('\n\tAdd key value pairs to document as needed.\n')
             exit = False 
             changes = {}
             while not exit:
@@ -327,14 +325,15 @@ class DbService:
                     ans = input('\tcommit change {0}: {1}? (Y/N)? '.format(new_key, new_value))
                 if ans == 'Y':
                     changes[new_key] = new_value
-                ans = input('Do you wish to continue (Y/N)? ')
+                ans = input('\tDo you wish to continue (Y/N)? ')
                 while ans != 'Y' and ans != 'N':
                     print('\tInvalid answer to (Y/N). please try again')
-                    ans = input('\tComtinue? (Y/N)? '.format(new_key,new_value))
+                    ans = input('\tContinue? (Y/N)? '.format(new_key,new_value))
                 if ans == 'N':
                     exit = True
-            x = self._mongo_db[label].update_one( { query_key : key } , { '$set': changes })
-            print(x.matched_count, x.modified_count, label, key, x.raw_result)
+            self._mongo_db[label].update_one( { query_key : key } , { '$set': changes })
+            print()
+            print('Update finished at ... {0}'.format(datetime.now()))
         else: 
             print('No table name to match label. Mongo Schema error. Please fix schema in code. Exiting')
             sys.exit(1)

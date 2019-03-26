@@ -8,3 +8,13 @@ load_all_data:
 
 user_data_only:
     - mock-data/user.csv,user
+
+demo:
+    - mock-data/project1_test/user.csv,user
+    - mock-data/project1_test/organization.csv,organization
+    - mock-data/project1_test/distance.csv,distance
+    - mock-data/project1_test/skill.csv,skill 
+    - mock-data/project1_test/interest.csv,interest
+    - mock-data/project1_test/project.csv,project
+
+

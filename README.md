@@ -1,6 +1,5 @@
 # Collaboraters
 
-
 ## About
 
 Welcome to collaborator. A command line tool to store and query professional
@@ -14,6 +13,21 @@ document for how to use it. Also note this app is currently in its proof of conc
 and is in its very early stages of development
 
 ## How to use/ All Queries:
+
+First make sure to create a virtual environment with virtualenv 
+
+`cd <to root folder>
+
+`mkdir venv`
+
+`virtualenv venv`
+
+Activate the virtual environment:
+`source venv/bin/activate`
+
+Install all dependencies
+`pip -r install requirements.txt`
+
 Make sure to navigate to src directory then execute one of the commands below
 
 ## Help Menu:
